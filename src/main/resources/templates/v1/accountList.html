@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+계좌조회성공
+<div class="container">
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">계좌번호</th>
+        <th scope="col">은행</th>
+        <th scope="col">소유주</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="account : ${bankAccounts.getRes_list()}">
+        <th th:text="${account.getAccount_num_masked()}"></th>
+        <td th:text="${account.getBank_name()}"> </td>
+        <td th:text="${account.getAccount_holder_name()}"></td>
+    </tr>
+    </tbody>
+</table>
+    <button type="button" th:href="@{/v1/bank}">뒤로가기</button>
+</div>
+</body>
+</html>

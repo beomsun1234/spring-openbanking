@@ -3,23 +3,30 @@ package com.bs.openbanking.bank;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.http.HttpSession;
 
-@RestController
+@Slf4j
+@RequiredArgsConstructor
+@Controller
 public class controller {
-
+    private final HttpSession session;
     /**
      * clientID = 	318b30f8-87cc-4e10-aff2-027ebd3e3b3a
      * http://localhost:8080/auth/openbank/callback
@@ -41,16 +48,14 @@ public class controller {
 
      * grant_type
      */
+
     @GetMapping("/auth/openbank/callback")
-    public BankAcountSearchResponse openBacnkCallback(BankRequestToken banRequestToken, Model model){
+    public String openBacnkCallback(BankRequestToken banRequestToken, Model model){
         //post 방식으로 key=vale 데이터 요청 (금결원)
-
         RestTemplate rt = new RestTemplate();
-
         //http 헤더 오브젝트 생성
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
-
         //httpBody 오브젝트 생성
         MultiValueMap<String,String> param = new LinkedMultiValueMap<>();
         //param.add("key",value);
@@ -59,7 +64,6 @@ public class controller {
         param.add("client_secret","5081186a-2d57-49cb-ab45-03dc853079b8");
         param.add("redirect_uri","http://localhost:8080/auth/openbank/callback");
         param.add("grant_type","authorization_code");
-
         // HttpHeader 와 HttpBody를 하나의 오브젝트에 담기
         HttpEntity<MultiValueMap<String,String>> openBankTokenRequest =
                 new HttpEntity<>(param,httpHeaders);
@@ -76,35 +80,70 @@ public class controller {
         BankReponseToken bankReponseToken = null;
         try {
             bankReponseToken = objectMapper.readValue(responseEntity.getBody(), BankReponseToken.class);
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+        //
+        /// 계좌조회
+        model.addAttribute("bankReponseToken",bankReponseToken);
+        session.setAttribute("token", bankReponseToken);
+        log.info("bankReponseToken={}", bankReponseToken);
+        return "v1/bank";
+    }
 
-        //https://openapi.openbanking.or.kr/v2.0/user/me
+
+    @GetMapping("/acount/list")
+    public String searchAcountList(String access_token,String user_seq_no, String include_cancel_yn, String sort_order, Model model){
+        log.info("access_token={}",access_token);
+        log.info("user_seq_no={}",user_seq_no);
+        log.info("include_cancel_yn={}",include_cancel_yn);
+        log.info("sort_order={}",sort_order);
         RestTemplate rt2 = new RestTemplate();
-
-        //http 헤더 오브젝트 생성
-        HttpHeaders httpHeaders2 = new HttpHeaders();
-        httpHeaders2.add("Authorization", "Bearer "+bankReponseToken.getAccess_token());
-        String url = "https://testapi.openbanking.or.kr/v2.0/account/list"; //등록계좌조회
-        HttpEntity<String> openBankAcountSerchRequest =
-                new HttpEntity<>(httpHeaders2);
-        //Http 요청하기 - post 방식으로
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Bearer "+access_token);
+        String url = "https://testapi.openbanking.or.kr/v2.0/account/list";//등록계좌조회
+        HttpEntity<String> openBankAcountSerchRequest = new HttpEntity<>(httpHeaders);
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("user_seq_no", bankReponseToken.getUser_seq_no())
-                .queryParam("include_cancel_yn", "Y")
-                .queryParam("sort_order", "D")
-                .build(false);
-        System.out.println(builder);
+                .queryParam("user_seq_no", user_seq_no)
+                .queryParam("include_cancel_yn", include_cancel_yn)
+                .queryParam("sort_order", sort_order)
+                .build();
         ResponseEntity<String> response = rt2.exchange(builder.toUriString(), HttpMethod.GET, openBankAcountSerchRequest, String.class);
-        BankAcountSearchResponse bankAcountSearchResponse = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        BankAcountSearchResponse bankAcountSearchResponse=null;
         try {
             bankAcountSearchResponse = objectMapper.readValue(response.getBody(), BankAcountSearchResponse.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-
-        return bankAcountSearchResponse;
+        model.addAttribute("bankAccounts", bankAcountSearchResponse);
+        log.info("계좌조회 성공 뷰로 넘어가야함");
+        return "v1/accountList";
     }
 
+    /**
+     * RestTemplate rt2 = new RestTemplate();
+     *
+     *         //http 헤더 오브젝트 생성
+//     *         HttpHeaders httpHeaders2 = new HttpHeaders();
+//     *         httpHeaders2.add("Authorization", "Bearer "+bankReponseToken.getAccess_token());
+//     *         String url = "https://testapi.openbanking.or.kr/v2.0/account/list"; //등록계좌조회
+//     *         HttpEntity<String> openBankAcountSerchRequest =
+//     *                 new HttpEntity<>(httpHeaders2);
+//     *         //Http 요청하기 - post 방식으로
+//     *         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
+//     *                 .queryParam("user_seq_no", bankReponseToken.getUser_seq_no())
+//     *                 .queryParam("include_cancel_yn", "Y")
+//     *                 .queryParam("sort_order", "D")
+//     *                 .build(false);
+//     *         System.out.println(builder);
+//     *         ResponseEntity<String> response = rt2.exchange(builder.toUriString(), HttpMethod.GET, openBankAcountSerchRequest, String.class);
+//     *         BankAcountSearchResponse bankAcountSearchResponse = null;
+//     *         try {
+//     *             bankAcountSearchResponse = objectMapper.readValue(response.getBody(), BankAcountSearchResponse.class);
+//     *         } catch (JsonProcessingException e) {
+//     *             e.printStackTrace();
+//     *         }
+     */
 }
