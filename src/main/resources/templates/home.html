@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+* clientID = 	318b30f8-87cc-4e10-aff2-027ebd3e3b3a
+* http://localhost:8080/auth/openbank/callback
+* Client Secret = 5081186a-2d57-49cb-ab45-03dc853079b8
+<form id="authorizeFrm" name="authorizeFrm" method="get" action="https://testapi.openbanking.or.kr/oauth/2.0/authorize"  target="_authForm">
+    <input type="hidden" name="client_id" value="318b30f8-87cc-4e10-aff2-027ebd3e3b3a"/>
+    <input type="hidden" name="scope" value="login inquiry transfer"/>
+    <input type="hidden" name="redirect_uri" value="http://localhost:8080/auth/openbank/callback"/>
+    <input type="hidden" name="auth_type" value="0"/>
+    <input type="hidden" name="response_type" value="code"/>
+    <input type="hidden" name="state" value="12345678901234567890123456789012"/>
+    <input type='submit'>
+</form>
+
+<script>
+    var $authorizeFrm = $('#authorizeFrm');
+    window.open('', '_authForm');
+    $authorizeFrm.submit();
+</script>
+</body>
+</html>
