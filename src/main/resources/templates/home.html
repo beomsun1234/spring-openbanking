@@ -1,21 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
-* clientID = 	318b30f8-87cc-4e10-aff2-027ebd3e3b3a
+* clientID = 	<p th:text="${clientId}"></p>
 * http://localhost:8080/auth/openbank/callback
 * Client Secret = 5081186a-2d57-49cb-ab45-03dc853079b8
 <form id="authorizeFrm" name="authorizeFrm" method="get" action="https://testapi.openbanking.or.kr/oauth/2.0/authorize"  target="_authForm">
-    <input type="hidden" name="client_id" value="318b30f8-87cc-4e10-aff2-027ebd3e3b3a"/>
+    <input type="hidden" name="client_id" th:value="${clientId}"/>
     <input type="hidden" name="scope" value="login inquiry transfer"/>
     <input type="hidden" name="redirect_uri" value="http://localhost:8080/auth/openbank/callback"/>
     <input type="hidden" name="auth_type" value="0"/>
     <input type="hidden" name="response_type" value="code"/>
     <input type="hidden" name="state" value="12345678901234567890123456789012"/>
     <input type='submit'>
+</form>
+<p th:value="${#temporals.createNow()}"></p>
+<form id="acount" method="get" action="/acount/list">
+    <input type="hidden" id="token" name="access_token" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTAwNzcxMjYzIiwic2NvcGUiOlsiaW5xdWlyeSIsImxvZ2luIiwidHJhbnNmZXIiXSwiaXNzIjoiaHR0cHM6Ly93d3cub3BlbmJhbmtpbmcub3Iua3IiLCJleHAiOjE2MzY4ODIxMTcsImp0aSI6IjIwMTZkNjc0LWI3YTItNDhkNC04ZDNiLTdhYWI4NGZhYjk4MSJ9.kq8yXG8KJ5sO7eX0-PJIann4_FC_YMgmqEsXa0zwV30"></input>
+    <input type="hidden" id="user_seq_no" name="user_seq_no" value="1100771263"></input>
+    <input type="hidden"  id="include_cancel_yn" name="include_cancel_yn" value="N"></input>
+    <input type="hidden"  id="sort_order" name="sort_order" value="D"></input>
+    <button type="submit">계좌조회</button>
 </form>
 </body>
 </html>
