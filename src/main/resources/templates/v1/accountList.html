@@ -20,7 +20,6 @@
         <th th:text="${account.getAccount_num_masked()}"></th>
         <td th:text="${account.getBank_name()}"> </td>
         <td th:text="${account.getAccount_holder_name()}"></td>
-        <td th:text="${account.fintech_use_num}"></td>
         <td><form method="get" action="/balance">
             <input type="hidden" id="access_token"
                    name="access_token" th:value="${access_token}"></input>

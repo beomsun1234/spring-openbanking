@@ -157,7 +157,7 @@ public class controller {
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("bank_tran_id",bank_tran_id)
                 .queryParam("fintech_use_num", fintech_use_num)
-                .queryParam("tran_dtime", "20210816101213")
+                .queryParam("tran_dtime", now)
                 .build();
         ResponseEntity<String> response = rt3.exchange(builder.toUriString(), HttpMethod.GET, balance, String.class);
         ObjectMapper objectMapper = new ObjectMapper();

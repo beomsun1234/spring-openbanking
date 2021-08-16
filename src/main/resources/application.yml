@@ -1,4 +1,3 @@
-openbank:
-  useCode : M202111920
-  client-id: 318b30f8-87cc-4e10-aff2-027ebd3e3b3a
-  client-secret: 5081186a-2d57-49cb-ab45-03dc853079b8
+spring:
+  profiles:
+    include: openbank
