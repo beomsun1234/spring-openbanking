@@ -36,4 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 
-application-openbank.yml
+src/main/resources/application-openbank.yml
