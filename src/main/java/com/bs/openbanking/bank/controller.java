@@ -1,6 +1,9 @@
 package com.bs.openbanking.bank;
 
 
+import com.bs.openbanking.bank.dto.BankAcountSearchResponseDto;
+import com.bs.openbanking.bank.dto.BankBalanceResponseDto;
+import com.bs.openbanking.bank.dto.BankReponseToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +18,6 @@ import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -122,13 +122,13 @@ public class controller {
                 .build();
         ResponseEntity<String> response = rt2.exchange(builder.toUriString(), HttpMethod.GET, openBankAcountSerchRequest, String.class);
         ObjectMapper objectMapper = new ObjectMapper();
-        BankAcountSearchResponse bankAcountSearchResponse=null;
+        BankAcountSearchResponseDto bankAcountSearchResponseDto =null;
         try {
-            bankAcountSearchResponse = objectMapper.readValue(response.getBody(), BankAcountSearchResponse.class);
+            bankAcountSearchResponseDto = objectMapper.readValue(response.getBody(), BankAcountSearchResponseDto.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        model.addAttribute("bankAccounts", bankAcountSearchResponse);
+        model.addAttribute("bankAccounts", bankAcountSearchResponseDto);
         log.info("계좌조회 성공 뷰로 넘어가야함");
         model.addAttribute("access_token",access_token);
         model.addAttribute("clientId", client);
@@ -161,14 +161,14 @@ public class controller {
                 .build();
         ResponseEntity<String> response = rt3.exchange(builder.toUriString(), HttpMethod.GET, balance, String.class);
         ObjectMapper objectMapper = new ObjectMapper();
-        BankBalanceResponse bankBalanceResponse=null;
+        BankBalanceResponseDto bankBalanceResponseDto =null;
         try {
-            bankBalanceResponse = objectMapper.readValue(response.getBody(), BankBalanceResponse.class);
+            bankBalanceResponseDto = objectMapper.readValue(response.getBody(), BankBalanceResponseDto.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        log.info("response={}", bankBalanceResponse.getAvailable_amt());
-        model.addAttribute("accountBalance",bankBalanceResponse);
+        log.info("response={}", bankBalanceResponseDto.getAvailable_amt());
+        model.addAttribute("accountBalance", bankBalanceResponseDto);
         return "v1/balance";
     }
     public String getRandomNumber(){
@@ -181,7 +181,15 @@ public class controller {
         return rst;
 
     }
-
+    /**
+     * 계좌이체
+     */
+    public String tfanfer(){
+        /**
+         * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
+         */
+        return "/";
+    }
     /**
      * RestTemplate rt2 = new RestTemplate();
      *
