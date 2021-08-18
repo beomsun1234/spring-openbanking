@@ -10,6 +10,7 @@
 <a th:text="${bankReponseToken.access_token}"  th:value="${bankReponseToken.access_token}"></a>
 <a type="hidden" th:text="${bankReponseToken.user_seq_no}" th:value="${bankReponseToken.user_seq_no}"></a>
 <br>
+
 <form id="acount" method="get" action="/acount/list">
     <input type="hidden" th:text="${bankReponseToken.access_token}" id="token" name="access_token" th:value="${bankReponseToken.access_token}"></input>
     <input type="hidden" th:text="${bankReponseToken.user_seq_no}" id="user_seq_no" name="user_seq_no" th:value="${bankReponseToken.user_seq_no}"></input>

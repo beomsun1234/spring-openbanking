@@ -1,6 +1,7 @@
 package com.bs.openbanking.bank;
 
 
+import com.bs.openbanking.bank.dto.AccountTransferRequestDto;
 import com.bs.openbanking.bank.dto.BankAcountSearchResponseDto;
 import com.bs.openbanking.bank.dto.BankBalanceResponseDto;
 import com.bs.openbanking.bank.dto.BankReponseToken;
@@ -9,15 +10,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -59,6 +59,14 @@ public class controller {
     private String clientId;
     @Value("${openbank.client-secret}")
     private String client_secret;
+
+    /**
+     * 토큰요청
+     * @param code
+     * @param scope
+     * @param model
+     * @return
+     */
     @GetMapping("/auth/openbank/callback")
     public String openBacnkCallback(String code, String scope,Model model){
         //post 방식으로 key=vale 데이터 요청 (금결원)
@@ -94,15 +102,21 @@ public class controller {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        //
-        /// 계좌조회
         model.addAttribute("bankReponseToken",bankReponseToken);
         session.setAttribute("token", bankReponseToken);
         log.info("bankReponseToken={}", bankReponseToken);
         return "v1/bank";
     }
 
-
+    /**
+     * 계좌조회
+     * @param access_token
+     * @param user_seq_no
+     * @param include_cancel_yn
+     * @param sort_order
+     * @param model
+     * @return
+     */
     @GetMapping("/acount/list")
     public String searchAcountList(String access_token,String user_seq_no, String include_cancel_yn, String sort_order, Model model){
         log.info("access_token={}",access_token);
@@ -128,13 +142,16 @@ public class controller {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+
         model.addAttribute("bankAccounts", bankAcountSearchResponseDto);
-        log.info("계좌조회 성공 뷰로 넘어가야함");
+
+        log.info("계좌조회 성공 뷰로 넘어감={}",bankAcountSearchResponseDto.getRes_list().get(0).getAccount_num());
         model.addAttribute("access_token",access_token);
         model.addAttribute("clientId", client);
         model.addAttribute("useCode",useCode);
         return "v1/accountList";
     }
+
     /**
      * 잔액조회
      */
@@ -171,6 +188,11 @@ public class controller {
         model.addAttribute("accountBalance", bankBalanceResponseDto);
         return "v1/balance";
     }
+
+    /**
+     * 은행 거래 고유번호 랜덤 생성
+     * @return
+     */
     public String getRandomNumber(){
 
         Random rand = new Random();
@@ -181,37 +203,62 @@ public class controller {
         return rst;
 
     }
+    public String trimAccountNum(String accountNum, int length){
+        String account = accountNum.substring(0, length - 3);
+        return account;
+    }
     /**
      * 계좌이체
      */
-    public String tfanfer(){
+    @GetMapping("/transfer")
+    public String openTransfer(Model model, String bank_tran_id,String access_token, String fintech_use_num, String account_num, String req_client_name){
         /**
          * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
          */
-        return "/";
+        log.info("access_token={}",access_token);
+        log.info("fintech_use_num={}",fintech_use_num);
+        log.info("account_num={}",account_num);
+        String realaccount = trimAccountNum(account_num, account_num.length());
+        log.info("account_num={}",realaccount);
+        String randNumber = bank_tran_id+getRandomNumber();
+        model.addAttribute("token", access_token);
+        model.addAttribute("fintech_use_num", fintech_use_num);
+        model.addAttribute("account_num", realaccount);
+        model.addAttribute("bank_tran_id", randNumber);
+        model.addAttribute("req_client_name",req_client_name);
+        model.addAttribute("transferForm",new AccountTransferRequestDto());
+        return "v1/transferForm";
     }
+    @PostMapping("/transfer")
+    public @ResponseBody ResponseEntity transfer(String access_token,AccountTransferRequestDto accountTransferRequestDto){
+        /**
+         * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
+         */
+        String url = "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fin_num";
+        RestTemplate restTemplate =new RestTemplate();
+        accountTransferRequestDto.setTran_dtime(getTranTime());
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Bearer "+access_token);
+
+        ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,httpHeaders, HttpStatus.OK);
+
+        ResponseEntity<String> exchange = restTemplate.exchange(url,
+                HttpMethod.POST,
+                param, String.class);
+
+        return exchange;
+    }
+
     /**
-     * RestTemplate rt2 = new RestTemplate();
-     *
-     *         //http 헤더 오브젝트 생성
-//     *         HttpHeaders httpHeaders2 = new HttpHeaders();
-//     *         httpHeaders2.add("Authorization", "Bearer "+bankReponseToken.getAccess_token());
-//     *         String url = "https://testapi.openbanking.or.kr/v2.0/account/list"; //등록계좌조회
-//     *         HttpEntity<String> openBankAcountSerchRequest =
-//     *                 new HttpEntity<>(httpHeaders2);
-//     *         //Http 요청하기 - post 방식으로
-//     *         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-//     *                 .queryParam("user_seq_no", bankReponseToken.getUser_seq_no())
-//     *                 .queryParam("include_cancel_yn", "Y")
-//     *                 .queryParam("sort_order", "D")
-//     *                 .build(false);
-//     *         System.out.println(builder);
-//     *         ResponseEntity<String> response = rt2.exchange(builder.toUriString(), HttpMethod.GET, openBankAcountSerchRequest, String.class);
-//     *         BankAcountSearchResponse bankAcountSearchResponse = null;
-//     *         try {
-//     *             bankAcountSearchResponse = objectMapper.readValue(response.getBody(), BankAcountSearchResponse.class);
-//     *         } catch (JsonProcessingException e) {
-//     *             e.printStackTrace();
-//     *         }
+     * 현재시간구하기
+     * @return
      */
+    public String getTranTime(){
+        LocalDateTime localDateTime = LocalDateTime.now();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss");
+        String now = localDateTime.format(dateTimeFormatter);
+        return now;
+    }
+
 }

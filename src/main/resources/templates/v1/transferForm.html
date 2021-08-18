@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+여기는 송금폼
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">계좌번호</th>
+        <th scope="col">은행</th>
+        <th scope="col">소유주</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <form id="acount" method="post" action="/transfer">
+            <input type="hidden" id="access_token" name="access_token" th:value="${token}"></input>
+            <input type="hidden" id="bank_tran_id" name="bank_tran_id" th:value="${bank_tran_id}"></input>
+            <input type="hidden" id="cntr_account_num"  name="cntr_account_num" th:value="${account_num}+'324'"></input>
+            <input type="hidden" id="dps_print_content" name="dps_print_content" th:value="간편계좌이체"></input>
+            <input type="hidden" id="cntr_account_type" name="cntr_account_type" th:value="N"></input>
+            <input type="hidden" id="fintech_use_num" name="fintech_use_num" th:value="${fintech_use_num}"></input>
+            <td>
+                <a>송금금액(100000, 20000)원만 가능(테스트케이스에 등록된값만 출금이체가능):</a>
+                <input type="text" id="tran_amt" name="tran_amt"></input></td>
+            <input type="hidden" id="req_client_name" name="req_client_name" th:value="${req_client_name}"></input>
+            <input type="hidden" id="req_client_bank_code" name="req_client_bank_code" th:value="004"></input>
+            <input type="hidden" id="req_client_account_num" name="req_client_account_num" th:value="${account_num}+'324'"></input>
+
+            <input type="text" id="req_client_num" name="req_client_num" th:value="BEOMSEON1234"></input>
+            <input type="hidden" id="transfer_purpose" name="transfer_purpose" th:value="TR"></input>
+            <input type="hidden" id="recv_client_bank_code" name="recv_client_bank_code" th:value="011"></input>
+            <td>
+                <a>수취인 계좌번호</a>
+                <input type="text" id="recv_client_account_num" name="recv_client_account_num" th:placeholder="계좌번호입력"></input>
+            </td>
+            <td>
+                <a>수취인명</a>
+                <input type="text" id="recv_client_name" name="recv_client_name" th:value="박범선" th:placeholder="박범선"></input></td>
+            <td><button type="submit">송금</button></td>
+        </form>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
