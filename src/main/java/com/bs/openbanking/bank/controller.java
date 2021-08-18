@@ -1,10 +1,7 @@
 package com.bs.openbanking.bank;
 
 
-import com.bs.openbanking.bank.dto.AccountTransferRequestDto;
-import com.bs.openbanking.bank.dto.BankAcountSearchResponseDto;
-import com.bs.openbanking.bank.dto.BankBalanceResponseDto;
-import com.bs.openbanking.bank.dto.BankReponseToken;
+import com.bs.openbanking.bank.dto.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -157,25 +154,18 @@ public class controller {
      */
     @GetMapping("/balance")
     public String searchBalance(String access_token, String bank_code, String fintech_use_num, Model model){
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss");
         String url = "https://testapi.openbanking.or.kr/v2.0/account/balance/fin_num"; //잔액조회
-        String now = localDateTime.format(dateTimeFormatter);
-        String  bank_tran_id = bank_code.concat(getRandomNumber());
-
-        log.info("bank_tran_id",bank_tran_id);
-        log.info("day={}",now);
-        String randomNumber = getRandomNumber();
         RestTemplate rt3 = new RestTemplate();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Bearer "+access_token);
         HttpEntity<String> balance = new HttpEntity<>(httpHeaders);
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("bank_tran_id",bank_tran_id)
+                .queryParam("bank_tran_id",getRandomNumber(bank_code))
                 .queryParam("fintech_use_num", fintech_use_num)
-                .queryParam("tran_dtime", now)
+                .queryParam("tran_dtime", getTransTime())
                 .build();
+
         ResponseEntity<String> response = rt3.exchange(builder.toUriString(), HttpMethod.GET, balance, String.class);
         ObjectMapper objectMapper = new ObjectMapper();
         BankBalanceResponseDto bankBalanceResponseDto =null;
@@ -193,14 +183,14 @@ public class controller {
      * 은행 거래 고유번호 랜덤 생성
      * @return
      */
-    public String getRandomNumber(){
+    public String getRandomNumber(String bank_tran_id){
 
         Random rand = new Random();
         String rst = Integer.toString(rand.nextInt(8) + 1);
         for(int i=0; i < 8; i++){
             rst += Integer.toString(rand.nextInt(9));
         }
-        return rst;
+        return bank_tran_id+rst;
 
     }
     public String trimAccountNum(String accountNum, int length){
@@ -215,18 +205,9 @@ public class controller {
         /**
          * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
          */
-        log.info("access_token={}",access_token);
-        log.info("fintech_use_num={}",fintech_use_num);
-        log.info("account_num={}",account_num);
-        String realaccount = trimAccountNum(account_num, account_num.length());
-        log.info("account_num={}",realaccount);
-        String randNumber = bank_tran_id+getRandomNumber();
+        String realaccount = trimAccountNum(account_num, account_num.length()); //계좌번호 마스킹된값 제거(계좌번호 보여주는건 계약된 사용자만가능
         model.addAttribute("token", access_token);
-        model.addAttribute("fintech_use_num", fintech_use_num);
-        model.addAttribute("account_num", realaccount);
-        model.addAttribute("bank_tran_id", randNumber);
-        model.addAttribute("req_client_name",req_client_name);
-        model.addAttribute("transferForm",new AccountTransferRequestDto());
+        model.addAttribute("transferForm",new AccountTransferRequestDto(getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,realaccount,realaccount));
         return "v1/transferForm";
     }
     @PostMapping("/transfer")
@@ -236,25 +217,25 @@ public class controller {
          */
         String url = "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fin_num";
         RestTemplate restTemplate =new RestTemplate();
-        accountTransferRequestDto.setTran_dtime(getTranTime());
+        accountTransferRequestDto.setTran_dtime(getTransTime());
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Bearer "+access_token);
 
         ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,httpHeaders, HttpStatus.OK);
 
-        ResponseEntity<String> exchange = restTemplate.exchange(url,
+        ResponseEntity<AccountTransferResponseDto> exchange = restTemplate.exchange(url,
                 HttpMethod.POST,
-                param, String.class);
+                param, AccountTransferResponseDto.class);
 
         return exchange;
     }
 
     /**
-     * 현재시간구하기
+     * 거래현재시간구하기
      * @return
      */
-    public String getTranTime(){
+    public String getTransTime(){
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss");
         String now = localDateTime.format(dateTimeFormatter);

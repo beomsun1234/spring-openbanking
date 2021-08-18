@@ -22,12 +22,12 @@ public class AccountTransferResponseDto {
     private String bank_rsp_message;
     private String fintech_use_num;
     private String account_alias;
-    private String bak_code_std;
+    private String bank_code_std;
     private String bank_code_sub;
     private String bank_name;
     private String account_num_masked;
     private String print_content;
     private String account_holder_name;
     private String tran_amt;
-    private String wdLimit_remain_amt;
+    private String wd_limit_remain_amt;
 }

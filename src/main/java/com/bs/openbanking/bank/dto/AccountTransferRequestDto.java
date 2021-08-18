@@ -20,4 +20,13 @@ public class AccountTransferRequestDto {
     private String recv_client_name;
     private String recv_client_bank_code;
     private String recv_client_account_num;
+
+
+    public AccountTransferRequestDto(String bank_tran_id,String fintech_use_num, String req_client_name, String cntr_account_num, String req_client_account_num){
+        this.bank_tran_id = bank_tran_id;
+        this.fintech_use_num = fintech_use_num;
+        this.req_client_name = req_client_name;
+        this.cntr_account_num = cntr_account_num;
+        this.req_client_account_num = req_client_account_num;
+    }
 }

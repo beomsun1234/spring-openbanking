@@ -18,17 +18,17 @@
     <tr>
         <form id="acount" method="post" action="/transfer">
             <input type="hidden" id="access_token" name="access_token" th:value="${token}"></input>
-            <input type="hidden" id="bank_tran_id" name="bank_tran_id" th:value="${bank_tran_id}"></input>
-            <input type="hidden" id="cntr_account_num"  name="cntr_account_num" th:value="${account_num}+'324'"></input>
+            <input type="hidden" id="bank_tran_id" name="bank_tran_id" th:value="${transferForm.bank_tran_id}"></input>
+            <input type="hidden" id="cntr_account_num"  name="cntr_account_num" th:value="${transferForm.cntr_account_num}+'324'"></input>
             <input type="hidden" id="dps_print_content" name="dps_print_content" th:value="간편계좌이체"></input>
             <input type="hidden" id="cntr_account_type" name="cntr_account_type" th:value="N"></input>
-            <input type="hidden" id="fintech_use_num" name="fintech_use_num" th:value="${fintech_use_num}"></input>
+            <input type="hidden" id="fintech_use_num" name="fintech_use_num" th:value="${transferForm.fintech_use_num}"></input>
             <td>
                 <a>송금금액(100000, 20000)원만 가능(테스트케이스에 등록된값만 출금이체가능):</a>
                 <input type="text" id="tran_amt" name="tran_amt"></input></td>
-            <input type="hidden" id="req_client_name" name="req_client_name" th:value="${req_client_name}"></input>
+            <input type="hidden" id="req_client_name" name="req_client_name" th:value="${transferForm.req_client_name}"></input>
             <input type="hidden" id="req_client_bank_code" name="req_client_bank_code" th:value="004"></input>
-            <input type="hidden" id="req_client_account_num" name="req_client_account_num" th:value="${account_num}+'324'"></input>
+            <input type="hidden" id="req_client_account_num" name="req_client_account_num" th:value="${transferForm.req_client_account_num}+'324'"></input>
 
             <input type="text" id="req_client_num" name="req_client_num" th:value="BEOMSEON1234"></input>
             <input type="hidden" id="transfer_purpose" name="transfer_purpose" th:value="TR"></input>
