@@ -1,6 +1,7 @@
 package com.bs.openbanking.bank;
 
 
+import com.bs.openbanking.bank.api.OpenBankutil;
 import com.bs.openbanking.bank.dto.*;
 import com.bs.openbanking.bank.service.OpenBankService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,6 +31,7 @@ import java.util.Random;
 @Controller
 public class OpenBankApiController {
     private final HttpSession session;
+    private final OpenBankutil openBankutil;
     /**
      * clientID = 	318b30f8-87cc-4e10-aff2-027ebd3e3b3a
      * http://localhost:8080/auth/openbank/callback
@@ -68,39 +70,45 @@ public class OpenBankApiController {
      * @return
      */
     @GetMapping("/auth/openbank/callback")
-    public String openBacnkCallBack(BankRequestToken bankRequestToken,Model model){
-        //post 방식으로 key=vale 데이터 요청 (금결원)
-        RestTemplate rt = new RestTemplate();
-        //http 헤더 오브젝트 생성
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
-        //httpBody 오브젝트 생성
-        bankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
-        // HttpHeader 와 HttpBody를 하나의 오브젝트에 담기
-        HttpEntity<BankRequestToken> openBankTokenRequest =
-                new HttpEntity<>(bankRequestToken,httpHeaders);
-        //Http 요청하기 - post 방식으로
-        ResponseEntity<String> responseEntity = rt.exchange(
-                "https://testapi.openbanking.or.kr/oauth/2.0/token",
-                HttpMethod.POST,
-                openBankTokenRequest,
-                String.class
-        );
-
-        //Gson, Json Simple, Object Mapper
-        ObjectMapper objectMapper = new ObjectMapper();
-        BankReponseToken bankReponseToken = null;
-        try {
-            bankReponseToken = objectMapper.readValue(responseEntity.getBody(), BankReponseToken.class);
-
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        model.addAttribute("bankReponseToken",bankReponseToken);
-        session.setAttribute("token", bankReponseToken);
-        log.info("bankReponseToken={}", bankReponseToken);
+    public String getToken(BankRequestToken bankRequestToken, Model model){
+        BankReponseToken token = openBankService.requestToken(bankRequestToken);
+        model.addAttribute("bankReponseToken",token);
+        log.info("bankReponseToken={}", token);
         return "v1/bank";
     }
+//    public String openBacnkCallBack(BankRequestToken bankRequestToken,Model model){
+//        //post 방식으로 key=vale 데이터 요청 (금결원)
+//        RestTemplate rt = new RestTemplate();
+//        //http 헤더 오브젝트 생성
+//        HttpHeaders httpHeaders = new HttpHeaders();
+//        httpHeaders.add("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+//        //httpBody 오브젝트 생성
+//        bankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
+//        // HttpHeader 와 HttpBody를 하나의 오브젝트에 담기
+//        HttpEntity<BankRequestToken> openBankTokenRequest =
+//                new HttpEntity<>(bankRequestToken,httpHeaders);
+//        //Http 요청하기 - post 방식으로
+//        ResponseEntity<String> responseEntity = rt.exchange(
+//                "https://testapi.openbanking.or.kr/oauth/2.0/token",
+//                HttpMethod.POST,
+//                openBankTokenRequest,
+//                String.class
+//        );
+//
+//        //Gson, Json Simple, Object Mapper
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        BankReponseToken bankReponseToken = null;
+//        try {
+//            bankReponseToken = objectMapper.readValue(responseEntity.getBody(), BankReponseToken.class);
+//
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace();
+//        }
+//        model.addAttribute("bankReponseToken",bankReponseToken);
+//        session.setAttribute("token", bankReponseToken);
+//        log.info("bankReponseToken={}", bankReponseToken);
+//        return "v1/bank";
+//    }
 
     /**
      * 계좌조회
@@ -128,66 +136,23 @@ public class OpenBankApiController {
     }
 
     /**
-     * 은행 거래 고유번호 랜덤 생성
-     * @return
-     */
-    public String getRandomNumber(String bank_tran_id){
-
-        Random rand = new Random();
-        String rst = Integer.toString(rand.nextInt(8) + 1);
-        for(int i=0; i < 8; i++){
-            rst += Integer.toString(rand.nextInt(9));
-        }
-        return bank_tran_id+rst;
-
-    }
-    public String trimAccountNum(String accountNum, int length){
-        String account = accountNum.substring(0, length - 3);
-        return account;
-    }
-    /**
      * 계좌이체
+     * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 
      */
     @GetMapping("/transfer")
     public String openTransfer(Model model, String bank_tran_id,String access_token, String fintech_use_num, String account_num, String req_client_name){
         /**
-         * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
+         * 20000, 100000원만 등록되어있음
          */
         //계좌번호 마스킹된값 제거(계좌번호 보여주는건 계약된 사용자만가능(그래서 마스킹된 3자리 잘라서 보내주고 클라이언트에서 3자리 더해줌
         model.addAttribute("token", access_token);
-        model.addAttribute("transferForm",new AccountTransferRequestDto(getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,trimAccountNum(account_num, account_num.length()),trimAccountNum(account_num, account_num.length())));
+        model.addAttribute("transferForm",new AccountTransferRequestDto(openBankutil.getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,openBankutil.trimAccountNum(account_num, account_num.length()),openBankutil.trimAccountNum(account_num, account_num.length())));
         return "v1/transferForm";
     }
     @PostMapping("/transfer")
-    public @ResponseBody ResponseEntity transfer(String access_token,AccountTransferRequestDto accountTransferRequestDto){
-        /**
-         * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
-         */
-        String url = "https://testapi.openbanking.or.kr/v2.0/transfer/withdraw/fin_num";
-        RestTemplate restTemplate =new RestTemplate();
-        accountTransferRequestDto.setTran_dtime(getTransTime());
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", "Bearer "+access_token);
-
-        ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,httpHeaders, HttpStatus.OK);
-
-        ResponseEntity<AccountTransferResponseDto> exchange = restTemplate.exchange(url,
-                HttpMethod.POST,
-                param, AccountTransferResponseDto.class);
-
-        return exchange;
+    public @ResponseBody AccountTransferResponseDto transfer(String access_token,AccountTransferRequestDto accountTransferRequestDto){
+        return openBankService.accountTransfer(access_token,accountTransferRequestDto);
     }
 
-    /**
-     * 현재 거래 시간구하기
-     * @return
-     */
-    public String getTransTime(){
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss");
-        String now = localDateTime.format(dateTimeFormatter);
-        return now;
-    }
 
 }

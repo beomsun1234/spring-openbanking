@@ -17,6 +17,5 @@ public class BankRequestToken {
         this.client_secret = client_secret;
         this.redirect_uri = redirect_uri;
         this.grant_type = grant_type;
-
     }
 }

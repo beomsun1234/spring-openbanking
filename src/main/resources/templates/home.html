@@ -5,14 +5,14 @@
     <title>Title</title>
 </head>
 <body>
-<form id="authorizeFrm" name="authorizeFrm" method="get" action="https://testapi.openbanking.or.kr/oauth/2.0/authorize"  target="_authForm">
+<form id="authorizeFrm" name="authorizeFrm" method="get" action="https://testapi.openbanking.or.kr/oauth/2.0/authorize" th:if="${access_token}==null">
     <input type="hidden" name="client_id" th:value="${clientId}"/>
     <input type="hidden" name="scope" value="login inquiry transfer"/>
     <input type="hidden" name="redirect_uri" value="http://localhost:8080/auth/openbank/callback"/>
     <input type="hidden" name="auth_type" value="0"/>
     <input type="hidden" name="response_type" value="code"/>
     <input type="hidden" name="state" value="12345678901234567890123456789012"/>
-    <input type='submit'>
+    <button type="submit">토큰발급</button>
 </form>
 <p th:value="${#temporals.createNow()}"></p>
 <form id="acount" method="get" action="/acount/list">
