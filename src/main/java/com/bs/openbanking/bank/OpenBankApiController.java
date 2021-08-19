@@ -76,39 +76,6 @@ public class OpenBankApiController {
         log.info("bankReponseToken={}", token);
         return "v1/bank";
     }
-//    public String openBacnkCallBack(BankRequestToken bankRequestToken,Model model){
-//        //post 방식으로 key=vale 데이터 요청 (금결원)
-//        RestTemplate rt = new RestTemplate();
-//        //http 헤더 오브젝트 생성
-//        HttpHeaders httpHeaders = new HttpHeaders();
-//        httpHeaders.add("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
-//        //httpBody 오브젝트 생성
-//        bankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
-//        // HttpHeader 와 HttpBody를 하나의 오브젝트에 담기
-//        HttpEntity<BankRequestToken> openBankTokenRequest =
-//                new HttpEntity<>(bankRequestToken,httpHeaders);
-//        //Http 요청하기 - post 방식으로
-//        ResponseEntity<String> responseEntity = rt.exchange(
-//                "https://testapi.openbanking.or.kr/oauth/2.0/token",
-//                HttpMethod.POST,
-//                openBankTokenRequest,
-//                String.class
-//        );
-//
-//        //Gson, Json Simple, Object Mapper
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        BankReponseToken bankReponseToken = null;
-//        try {
-//            bankReponseToken = objectMapper.readValue(responseEntity.getBody(), BankReponseToken.class);
-//
-//        } catch (JsonProcessingException e) {
-//            e.printStackTrace();
-//        }
-//        model.addAttribute("bankReponseToken",bankReponseToken);
-//        session.setAttribute("token", bankReponseToken);
-//        log.info("bankReponseToken={}", bankReponseToken);
-//        return "v1/bank";
-//    }
 
     /**
      * 계좌조회

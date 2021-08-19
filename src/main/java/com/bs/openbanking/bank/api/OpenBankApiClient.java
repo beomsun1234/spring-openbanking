@@ -56,8 +56,18 @@ public class OpenBankApiClient {
         // HttpHeader 와 HttpBody를 하나의 오브젝트에 담기
         HttpEntity<MultiValueMap<String,String>> param =
                 new HttpEntity<>(parameters,httpHeaders);
+        //Http 요청하기 - post 방식으로
         return restTemplate.exchange("https://testapi.openbanking.or.kr/oauth/2.0/token", HttpMethod.POST, param, BankReponseToken.class).getBody();
     }
+    //        //Gson, Json Simple, Object Mapper
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        BankReponseToken bankReponseToken = null;
+//        try {
+//            bankReponseToken = objectMapper.readValue(responseEntity.getBody(), BankReponseToken.class);
+//
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace();
+//        }
 
     /**
      * 계좌조히
@@ -104,7 +114,7 @@ public class OpenBankApiClient {
 
 
     /**
-     * 헤더에 에세스 토큰넣기
+     * 헤더에 엑세스 토큰넣기
      * @param access_token
      * @return
      */
