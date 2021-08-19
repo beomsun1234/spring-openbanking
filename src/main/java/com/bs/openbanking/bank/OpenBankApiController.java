@@ -2,6 +2,7 @@ package com.bs.openbanking.bank;
 
 
 import com.bs.openbanking.bank.dto.*;
+import com.bs.openbanking.bank.service.OpenBankService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ import java.util.Random;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-public class controller {
+public class OpenBankApiController {
     private final HttpSession session;
     /**
      * clientID = 	318b30f8-87cc-4e10-aff2-027ebd3e3b3a
@@ -57,31 +58,27 @@ public class controller {
     @Value("${openbank.client-secret}")
     private String client_secret;
 
+    @Value("${openbank.access-token}")
+    private String access_token;
+    private String redirect_uri = "http://localhost:8080/auth/openbank/callback";
+    private final OpenBankService openBankService;
     /**
      * 토큰요청
-     * @param code
-     * @param scope
      * @param model
      * @return
      */
     @GetMapping("/auth/openbank/callback")
-    public String openBacnkCallback(String code, String scope,Model model){
+    public String openBacnkCallBack(BankRequestToken bankRequestToken,Model model){
         //post 방식으로 key=vale 데이터 요청 (금결원)
         RestTemplate rt = new RestTemplate();
         //http 헤더 오브젝트 생성
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
         //httpBody 오브젝트 생성
-        MultiValueMap<String,String> param = new LinkedMultiValueMap<>();
-        //param.add("key",value);
-        param.add("code", code);
-        param.add("client_id",clientId);
-        param.add("client_secret",client_secret);
-        param.add("redirect_uri","http://localhost:8080/auth/openbank/callback");
-        param.add("grant_type","authorization_code");
+        bankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
         // HttpHeader 와 HttpBody를 하나의 오브젝트에 담기
-        HttpEntity<MultiValueMap<String,String>> openBankTokenRequest =
-                new HttpEntity<>(param,httpHeaders);
+        HttpEntity<BankRequestToken> openBankTokenRequest =
+                new HttpEntity<>(bankRequestToken,httpHeaders);
         //Http 요청하기 - post 방식으로
         ResponseEntity<String> responseEntity = rt.exchange(
                 "https://testapi.openbanking.or.kr/oauth/2.0/token",
@@ -107,45 +104,17 @@ public class controller {
 
     /**
      * 계좌조회
-     * @param access_token
-     * @param user_seq_no
-     * @param include_cancel_yn
-     * @param sort_order
+     * dto 만들기
+     * @param accountSearchRequestDto
      * @param model
      * @return
      */
     @GetMapping("/acount/list")
-    public String searchAcountList(String access_token,String user_seq_no, String include_cancel_yn, String sort_order, Model model){
-        log.info("access_token={}",access_token);
-        log.info("user_seq_no={}",user_seq_no);
-        String client = clientId;
-        log.info("include_cancel_yn={}",include_cancel_yn);
-        log.info("sort_order={}",sort_order);
-        RestTemplate rt2 = new RestTemplate();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", "Bearer "+access_token);
-        String url = "https://testapi.openbanking.or.kr/v2.0/account/list";//등록계좌조회
-        HttpEntity<String> openBankAcountSerchRequest = new HttpEntity<>(httpHeaders);
-        UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("user_seq_no", user_seq_no)
-                .queryParam("include_cancel_yn", include_cancel_yn)
-                .queryParam("sort_order", sort_order)
-                .build();
-        ResponseEntity<String> response = rt2.exchange(builder.toUriString(), HttpMethod.GET, openBankAcountSerchRequest, String.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        BankAcountSearchResponseDto bankAcountSearchResponseDto =null;
-        try {
-            bankAcountSearchResponseDto = objectMapper.readValue(response.getBody(), BankAcountSearchResponseDto.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        model.addAttribute("bankAccounts", bankAcountSearchResponseDto);
-
-        log.info("계좌조회 성공 뷰로 넘어감={}",bankAcountSearchResponseDto.getRes_list().get(0).getAccount_num());
-        model.addAttribute("access_token",access_token);
-        model.addAttribute("clientId", client);
+    public String searchAcountList(AccountSearchRequestDto accountSearchRequestDto, Model model){
+        BankAcountSearchResponseDto account = openBankService.findAccount(accountSearchRequestDto);
+        model.addAttribute("bankAccounts",account);
         model.addAttribute("useCode",useCode);
+        model.addAttribute("access_token",access_token);
         return "v1/accountList";
     }
 
@@ -153,29 +122,8 @@ public class controller {
      * 잔액조회
      */
     @GetMapping("/balance")
-    public String searchBalance(String access_token, String bank_code, String fintech_use_num, Model model){
-        String url = "https://testapi.openbanking.or.kr/v2.0/account/balance/fin_num"; //잔액조회
-        RestTemplate rt3 = new RestTemplate();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", "Bearer "+access_token);
-        HttpEntity<String> balance = new HttpEntity<>(httpHeaders);
-
-        UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("bank_tran_id",getRandomNumber(bank_code))
-                .queryParam("fintech_use_num", fintech_use_num)
-                .queryParam("tran_dtime", getTransTime())
-                .build();
-
-        ResponseEntity<String> response = rt3.exchange(builder.toUriString(), HttpMethod.GET, balance, String.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        BankBalanceResponseDto bankBalanceResponseDto =null;
-        try {
-            bankBalanceResponseDto = objectMapper.readValue(response.getBody(), BankBalanceResponseDto.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        log.info("response={}", bankBalanceResponseDto.getAvailable_amt());
-        model.addAttribute("accountBalance", bankBalanceResponseDto);
+    public String searchBalance(String access_token, BankBalanceRequestDto bankBalanceRequestDto, Model model){
+        model.addAttribute("accountBalance", openBankService.findBalance(access_token,bankBalanceRequestDto));
         return "v1/balance";
     }
 
@@ -205,9 +153,9 @@ public class controller {
         /**
          * 계좌이체 처리 테스트에 등록된 값만 계좌이체가능!! 포스트 매핑으로 값 받음
          */
-        String realaccount = trimAccountNum(account_num, account_num.length()); //계좌번호 마스킹된값 제거(계좌번호 보여주는건 계약된 사용자만가능
+        //계좌번호 마스킹된값 제거(계좌번호 보여주는건 계약된 사용자만가능(그래서 마스킹된 3자리 잘라서 보내주고 클라이언트에서 3자리 더해줌
         model.addAttribute("token", access_token);
-        model.addAttribute("transferForm",new AccountTransferRequestDto(getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,realaccount,realaccount));
+        model.addAttribute("transferForm",new AccountTransferRequestDto(getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,trimAccountNum(account_num, account_num.length()),trimAccountNum(account_num, account_num.length())));
         return "v1/transferForm";
     }
     @PostMapping("/transfer")
@@ -232,7 +180,7 @@ public class controller {
     }
 
     /**
-     * 거래현재시간구하기
+     * 현재 거래 시간구하기
      * @return
      */
     public String getTransTime(){
