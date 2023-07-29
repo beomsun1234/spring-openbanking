@@ -4,38 +4,22 @@ package com.bs.openbanking.bank;
 import com.bs.openbanking.bank.api.OpenBankutil;
 import com.bs.openbanking.bank.dto.*;
 import com.bs.openbanking.bank.service.OpenBankService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpSession;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Random;
 
 @Slf4j
 @RequiredArgsConstructor
 @Controller
 public class OpenBankApiController {
-    private final HttpSession session;
     private final OpenBankutil openBankutil;
     /**
-     * clientID = 	318b30f8-87cc-4e10-aff2-027ebd3e3b3a
      * http://localhost:8080/auth/openbank/callback
-     * Client Secret = 5081186a-2d57-49cb-ab45-03dc853079b8
      *
      * 토큰 발급 요청 주소(POST)
      * https://testapi.openbanking.or.kr/oauth/2.0/token

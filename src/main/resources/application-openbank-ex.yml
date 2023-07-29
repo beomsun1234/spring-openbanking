@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: openbank-ex
+
+openbank:
+  useCode : {your code}
+  client-id: {client id}
+  client-secret: {client secret}
+
