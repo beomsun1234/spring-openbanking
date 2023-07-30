@@ -1,12 +1,11 @@
 package com.bs.openbanking.bank.dto;
 
-import com.bs.openbanking.bank.dto.AcountDto;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class BankAcountSearchResponseDto {
+public class BankAccountSearchResponseDto {
 
     private String api_tran_id;
     private String rsp_code;

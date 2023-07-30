@@ -1,7 +1,7 @@
-package com.bs.openbanking.bank;
+package com.bs.openbanking.bank.controller;
 
 
-import com.bs.openbanking.bank.api.OpenBankutil;
+import com.bs.openbanking.bank.api.OpenBankUtil;
 import com.bs.openbanking.bank.dto.*;
 import com.bs.openbanking.bank.service.OpenBankService;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-public class OpenBankApiController {
-    private final OpenBankutil openBankutil;
+public class OpenBankController {
+    private final OpenBankUtil openBankUtil;
     /**
      * http://localhost:8080/auth/openbank/callback
      *
@@ -34,7 +34,6 @@ public class OpenBankApiController {
      * Access Token을 전달받을 Callback URL
      *
      * (Authorization Code 획득 시 요청했던 Callback URL)
-
      * grant_type
      */
     @Value("${openbank.useCode}")
@@ -46,8 +45,15 @@ public class OpenBankApiController {
 
     @Value("${openbank.access-token}")
     private String access_token;
-    private String redirect_uri = "http://localhost:8080/auth/openbank/callback";
+    private final static String redirect_uri = "http://localhost:8080/auth/openbank/callback";
     private final OpenBankService openBankService;
+
+    @GetMapping("/")
+    public String home(Model model){
+        model.addAttribute("clientId", clientId);
+        model.addAttribute("access_token",access_token);
+        return "/home";
+    }
     /**
      * 토큰요청
      * @param model
@@ -56,8 +62,8 @@ public class OpenBankApiController {
     @GetMapping("/auth/openbank/callback")
     public String getToken(BankRequestToken bankRequestToken, Model model){
         BankReponseToken token = openBankService.requestToken(bankRequestToken);
-        model.addAttribute("bankReponseToken",token);
-        log.info("bankReponseToken={}", token);
+        model.addAttribute("bankResponseToken",token);
+        log.info("bankResponseToken={}", token.getAccess_token());
         return "v1/bank";
     }
 
@@ -68,9 +74,9 @@ public class OpenBankApiController {
      * @param model
      * @return
      */
-    @GetMapping("/acount/list")
-    public String searchAcountList(AccountSearchRequestDto accountSearchRequestDto, Model model){
-        BankAcountSearchResponseDto account = openBankService.findAccount(accountSearchRequestDto);
+    @GetMapping("/account/list")
+    public String searchAccountList(AccountSearchRequestDto accountSearchRequestDto, Model model){
+        BankAccountSearchResponseDto account = openBankService.findAccount(accountSearchRequestDto);
         model.addAttribute("bankAccounts",account);
         model.addAttribute("useCode",useCode);
         model.addAttribute("access_token",access_token);
@@ -82,7 +88,9 @@ public class OpenBankApiController {
      */
     @GetMapping("/balance")
     public String searchBalance(String access_token, BankBalanceRequestDto bankBalanceRequestDto, Model model){
-        model.addAttribute("accountBalance", openBankService.findBalance(access_token,bankBalanceRequestDto));
+        BankBalanceResponseDto bankBalanceResponseDto = openBankService.findBalance(access_token, bankBalanceRequestDto);
+        System.out.println(bankBalanceResponseDto);
+        model.addAttribute("accountBalance", bankBalanceResponseDto);
         return "v1/balance";
     }
 
@@ -97,7 +105,7 @@ public class OpenBankApiController {
          */
         //계좌번호 마스킹된값 제거(계좌번호 보여주는건 계약된 사용자만가능(그래서 마스킹된 3자리 잘라서 보내주고 클라이언트에서 3자리 더해줌
         model.addAttribute("token", access_token);
-        model.addAttribute("transferForm",new AccountTransferRequestDto(openBankutil.getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,openBankutil.trimAccountNum(account_num, account_num.length()),openBankutil.trimAccountNum(account_num, account_num.length())));
+        model.addAttribute("transferForm",new AccountTransferRequestDto(openBankUtil.getRandomNumber(bank_tran_id),fintech_use_num,req_client_name,openBankUtil.trimAccountNum(account_num, account_num.length()),openBankUtil.trimAccountNum(account_num, account_num.length())));
         return "v1/transferForm";
     }
     @PostMapping("/transfer")
