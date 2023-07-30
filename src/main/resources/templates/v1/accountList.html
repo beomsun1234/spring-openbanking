@@ -13,6 +13,7 @@
         <th scope="col">계좌번호</th>
         <th scope="col">은행</th>
         <th scope="col">소유주</th>
+        <th scope="col">핀테크이용번호</th>
     </tr>
     </thead>
     <tbody>
@@ -21,6 +22,7 @@
         <td th:text="${account.account_num}"> </td>
         <td th:text="${account.getBank_name()}"> </td>
         <td th:text="${account.getAccount_holder_name()}"></td>
+        <td th:text="${account.fintech_use_num}"></td>
         <td><form method="get" action="/balance">
             <input type="hidden" id="access_token"
                    name="access_token" th:value="${access_token}"></input>
