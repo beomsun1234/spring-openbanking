@@ -77,7 +77,7 @@ public class OpenBankApiClient {
         /**
          * bank_tran_id의 경우 규칙이있다. 핀테크이용번호+ "U" + "랜덤한 9자리숫자"
          */
-        bankBalanceRequestDto.setBankTransIdAndTranssDtime(openBankutil.getRandomNumber(useCode + "U"),openBankutil.getTransTime());
+        bankBalanceRequestDto.setBankTransIdAndTransDateTime(openBankutil.getRandomNumber(useCode + "U"),openBankutil.getTransTime());
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("bank_tran_id",bankBalanceRequestDto.getBank_tran_id())

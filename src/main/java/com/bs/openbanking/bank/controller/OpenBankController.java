@@ -54,18 +54,6 @@ public class OpenBankController {
         model.addAttribute("access_token",access_token);
         return "/home";
     }
-    /**
-     * 토큰요청
-     * @param model
-     * @return
-     */
-    @GetMapping("/auth/openbank/callback")
-    public String getToken(BankRequestToken bankRequestToken, Model model){
-        BankReponseToken token = openBankService.requestToken(bankRequestToken);
-        model.addAttribute("bankResponseToken",token);
-        log.info("bankResponseToken={}", token.getAccess_token());
-        return "v1/bank";
-    }
 
     /**
      * 계좌조회
