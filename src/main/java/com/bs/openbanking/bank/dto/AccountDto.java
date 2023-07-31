@@ -3,7 +3,7 @@ package com.bs.openbanking.bank.dto;
 import lombok.Data;
 
 @Data
-public class AcountDto {
+public class AccountDto {
     private String fintech_use_num;
     private String account_alias;
     private String bank_code_std;

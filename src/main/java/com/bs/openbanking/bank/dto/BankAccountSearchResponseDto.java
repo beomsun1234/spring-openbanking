@@ -13,7 +13,7 @@ public class BankAccountSearchResponseDto {
     private String api_tran_dtm;
     private String user_name;
     private String res_cnt;
-    private List<AcountDto> res_list;
+    private List<AccountDto> res_list;
 
 
 }
