@@ -10,8 +10,4 @@ public class Config {
     public RestTemplate restTemplate(){
         return new RestTemplate();
     }
-    @Bean
-    public HttpHeaders httpHeaders(){
-        return new HttpHeaders();
-    }
 }

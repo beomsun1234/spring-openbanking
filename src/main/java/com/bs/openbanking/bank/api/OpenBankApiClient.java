@@ -17,7 +17,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class OpenBankApiClient {
     private final OpenBankUtil openBankutil;
-    private final HttpHeaders httpHeaders;
     private final RestTemplate restTemplate;
 
     @Value("${openbank.useCode}")
@@ -36,7 +35,7 @@ public class OpenBankApiClient {
      * 토큰요청 http 헤더타입은 application/x-www-form-urlencoded
      */
     public BankReponseToken requestToken(BankRequestToken bankRequestToken){
-        httpHeaders.add("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+        HttpHeaders httpHeaders = generateHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
         bankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
         /**
@@ -58,7 +57,7 @@ public class OpenBankApiClient {
     public BankAccountSearchResponseDto requestAccountList(AccountSearchRequestDto accountSearchRequestDto){
         String url = base_url+"/account/list";
 
-        HttpEntity httpEntity = generateHttpEntity(generateAuthHeader(accountSearchRequestDto.getAccess_token()));
+        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",accountSearchRequestDto.getAccess_token()));
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("user_seq_no", accountSearchRequestDto.getUser_seq_no())
@@ -74,9 +73,11 @@ public class OpenBankApiClient {
     public BankBalanceResponseDto requestBalance(BankBalanceRequestDto bankBalanceRequestDto, String access_token){
         String url = base_url+"/account/balance/fin_num";
 
-        HttpEntity httpEntity = generateHttpEntity(generateAuthHeader(access_token));
-
-        bankBalanceRequestDto.setBankTransIdAndTranssDtime(openBankutil.getRandomNumber(bankBalanceRequestDto.getBank_tran_id()),openBankutil.getTransTime());
+        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",access_token));
+        /**
+         * bank_tran_id의 경우 규칙이있다. 핀테크이용번호+ "U" + "랜덤한 9자리숫자"
+         */
+        bankBalanceRequestDto.setBankTransIdAndTranssDtime(openBankutil.getRandomNumber(useCode + "U"),openBankutil.getTransTime());
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("bank_tran_id",bankBalanceRequestDto.getBank_tran_id())
@@ -96,7 +97,7 @@ public class OpenBankApiClient {
 
         accountTransferRequestDto.setTran_dtime(openBankutil.getTransTime());
 
-        ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,generateAuthHeader(access_token),HttpStatus.OK);
+        ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,generateHeader("Authorization",access_token),HttpStatus.OK);
 
         return restTemplate.exchange(url, HttpMethod.POST, param, AccountTransferResponseDto.class).getBody();
     }
@@ -105,16 +106,22 @@ public class OpenBankApiClient {
      * 요청할 HttpEntity 생성
     */
     private HttpEntity generateHttpEntity(HttpHeaders httpHeaders) {
-
         return new HttpEntity<>(httpHeaders);
     }
 
+
     /**
-     * 헤더에 엑세스 토큰넣기
+     * 헤더 생성
      */
-    private HttpHeaders generateAuthHeader(String access_token){
-        httpHeaders.add("Authorization", "Bearer "+access_token);
+    private HttpHeaders generateHeader(String name ,String val){
+        HttpHeaders httpHeaders = new HttpHeaders();
+        if (name.equals("Authorization")) {
+            httpHeaders.add(name, "Bearer "+val);
+            return httpHeaders;
+        }
+        httpHeaders.add(name, val);
         return httpHeaders;
     }
+
 
 }
