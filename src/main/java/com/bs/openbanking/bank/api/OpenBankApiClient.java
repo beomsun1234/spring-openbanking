@@ -16,18 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 @Service
 public class OpenBankApiClient {
-    private final OpenBankUtil openBankutil;
     private final RestTemplate restTemplate;
-
-    @Value("${openbank.useCode}")
-    private String useCode; // 핀테크번호+U -> 거래고유번호 생성기
-    @Value("${openbank.client-id}")
-    private String clientId;
-    @Value("${openbank.client-secret}")
-    private String client_secret;
-
-    private final static String redirect_uri = "http://localhost:8080/auth/openbank/callback";
-    private final static String base_url = "https://testapi.openbanking.or.kr/v2.0";
+    private static final String base_url = "https://testapi.openbanking.or.kr/v2.0";
 
     /**
      * 토큰발급요청
@@ -36,14 +26,12 @@ public class OpenBankApiClient {
      */
     public BankReponseToken requestToken(BankRequestToken bankRequestToken){
         HttpHeaders httpHeaders = generateHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-
-        bankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
         /**
          * 헤더의 컨텐트 타입이 application/x-www-form-urlencoded;charset=UTF-8이므로 객체를 집어넣을수 없음.. 그러므로 MultiValueMap 사용 해야함
          */
         HttpEntity httpEntity = generateHttpEntityWithBody(httpHeaders, bankRequestToken.toMultiValueMap());
 
-        return restTemplate.exchange("https://testapi.openbanking.or.kr/oauth/2.0/token",HttpMethod.POST, httpEntity ,BankReponseToken.class).getBody();
+        return restTemplate.exchange(base_url + "/token",HttpMethod.POST, httpEntity ,BankReponseToken.class).getBody();
     }
     private HttpEntity generateHttpEntityWithBody(HttpHeaders httpHeaders, MultiValueMap body) {
         return new HttpEntity<>(body, httpHeaders);
@@ -74,10 +62,6 @@ public class OpenBankApiClient {
         String url = base_url+"/account/balance/fin_num";
 
         HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",access_token));
-        /**
-         * bank_tran_id의 경우 규칙이있다. 핀테크이용번호+ "U" + "랜덤한 9자리숫자"
-         */
-        bankBalanceRequestDto.setBankTransIdAndTransDateTime(openBankutil.getRandomNumber(useCode + "U"),openBankutil.getTransTime());
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("bank_tran_id",bankBalanceRequestDto.getBank_tran_id())
@@ -95,7 +79,7 @@ public class OpenBankApiClient {
     public AccountTransferResponseDto requestTransfer(String access_token, AccountTransferRequestDto accountTransferRequestDto){
         String url = base_url+"//transfer/withdraw/fin_num";
 
-        accountTransferRequestDto.setTran_dtime(openBankutil.getTransTime());
+        accountTransferRequestDto.setTran_dtime(OpenBankUtil.getTransTime());
 
         ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,generateHeader("Authorization",access_token),HttpStatus.OK);
 
