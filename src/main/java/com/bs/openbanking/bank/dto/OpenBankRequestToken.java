@@ -1,12 +1,11 @@
 package com.bs.openbanking.bank.dto;
 
-import lombok.Builder;
 import lombok.Data;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 @Data
-public class BankRequestToken {
+public class OpenBankRequestToken {
     private String code;
     private String client_id;
     private String client_secret;

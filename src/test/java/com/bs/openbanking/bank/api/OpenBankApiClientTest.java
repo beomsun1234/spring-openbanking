@@ -43,11 +43,11 @@ class OpenBankApiClientTest {
     @Test
     void requestTokenTest() throws JsonProcessingException {
         //given
-        BankRequestToken bankRequestToken = new BankRequestToken();
-        bankRequestToken.setCode("test");
-        bankRequestToken.setBankRequestToken("test", "test", "test", "test");
+        OpenBankRequestToken openBankRequestToken = new OpenBankRequestToken();
+        openBankRequestToken.setCode("test");
+        openBankRequestToken.setBankRequestToken("test", "test", "test", "test");
 
-        BankReponseToken expect = new BankReponseToken();
+        OpenBankReponseToken expect = new OpenBankReponseToken();
         expect.setAccess_token("test");
 
         String resBody = mapper.writeValueAsString(expect);
@@ -56,7 +56,7 @@ class OpenBankApiClientTest {
                 .expect(requestTo(baseUrl + "/token"))
                 .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
         //when
-        BankReponseToken result = openBankApiClient.requestToken(bankRequestToken);
+        OpenBankReponseToken result = openBankApiClient.requestToken(openBankRequestToken);
         //then
         Assertions.assertEquals(expect.getAccess_token(),result.getAccess_token() );
     }
@@ -64,19 +64,19 @@ class OpenBankApiClientTest {
     @Test
     void requestAccountTest() throws JsonProcessingException {
         //given
-        AccountSearchRequestDto accountSearchRequestDto = new AccountSearchRequestDto();
-        accountSearchRequestDto.setUser_seq_no("1");
-        accountSearchRequestDto.setSort_order("D");
-        accountSearchRequestDto.setAccess_token("test");
-        accountSearchRequestDto.setInclude_cancel_yn("N");
+        OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto = new OpenBankAccountSearchRequestDto();
+        openBankAccountSearchRequestDto.setUser_seq_no("1");
+        openBankAccountSearchRequestDto.setSort_order("D");
+        openBankAccountSearchRequestDto.setAccess_token("test");
+        openBankAccountSearchRequestDto.setInclude_cancel_yn("N");
 
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl+ "/account/list")
-                .queryParam("user_seq_no", accountSearchRequestDto.getUser_seq_no())
-                .queryParam("include_cancel_yn", accountSearchRequestDto.getInclude_cancel_yn())
-                .queryParam("sort_order", accountSearchRequestDto.getSort_order())
+                .queryParam("user_seq_no", openBankAccountSearchRequestDto.getUser_seq_no())
+                .queryParam("include_cancel_yn", openBankAccountSearchRequestDto.getInclude_cancel_yn())
+                .queryParam("sort_order", openBankAccountSearchRequestDto.getSort_order())
                 .build().toUriString();
 
-        BankAccountSearchResponseDto expect = new BankAccountSearchResponseDto();
+        OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
         expect.setUser_name("park");
 
         String resBody = mapper.writeValueAsString(expect);
@@ -85,7 +85,7 @@ class OpenBankApiClientTest {
                 .expect(requestTo(url))
                 .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
         //when
-        BankAccountSearchResponseDto result = openBankApiClient.requestAccountList(accountSearchRequestDto);
+        OpenBankAccountSearchResponseDto result = openBankApiClient.requestAccountList(openBankAccountSearchRequestDto);
         //then
         Assertions.assertEquals(expect.getUser_name(),result.getUser_name());
     }
@@ -93,15 +93,15 @@ class OpenBankApiClientTest {
     @Test
     void requestBalanceTest() throws JsonProcessingException {
         //given
-        BankBalanceRequestDto bankBalanceRequestDto = BankBalanceRequestDto.builder().bank_tran_id("test").fintech_use_num("123").tran_dtime(OpenBankUtil.getTransTime()).build();
+        OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder().bank_tran_id("test").fintech_use_num("123").tran_dtime(OpenBankUtil.getTransTime()).build();
 
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/account/balance/fin_num")
-                .queryParam("bank_tran_id",bankBalanceRequestDto.getBank_tran_id())
-                .queryParam("fintech_use_num", bankBalanceRequestDto.getFintech_use_num())
-                .queryParam("tran_dtime",bankBalanceRequestDto.getTran_dtime())
+                .queryParam("bank_tran_id", openBankBalanceRequestDto.getBank_tran_id())
+                .queryParam("fintech_use_num", openBankBalanceRequestDto.getFintech_use_num())
+                .queryParam("tran_dtime", openBankBalanceRequestDto.getTran_dtime())
                 .build().toUriString();
 
-        BankBalanceResponseDto expect = new BankBalanceResponseDto();
+        OpenBankBalanceResponseDto expect = new OpenBankBalanceResponseDto();
         expect.setBalance_amt("10000");
 
         String resBody = mapper.writeValueAsString(expect);
@@ -110,7 +110,7 @@ class OpenBankApiClientTest {
                 .expect(requestTo(url))
                 .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
         //when
-        BankBalanceResponseDto result = openBankApiClient.requestBalance(bankBalanceRequestDto, "test");
+        OpenBankBalanceResponseDto result = openBankApiClient.requestBalance(openBankBalanceRequestDto, "test");
         //then
         Assertions.assertEquals( expect.getBalance_amt(),result.getBalance_amt() );
     }

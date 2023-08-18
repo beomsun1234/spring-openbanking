@@ -58,13 +58,13 @@ public class OpenBankController {
     /**
      * 계좌조회
      * dto 만들기
-     * @param accountSearchRequestDto
+     * @param openBankAccountSearchRequestDto
      * @param model
      * @return
      */
     @GetMapping("/account/list")
-    public String searchAccountList(AccountSearchRequestDto accountSearchRequestDto, Model model){
-        BankAccountSearchResponseDto account = openBankService.findAccount(accountSearchRequestDto);
+    public String searchAccountList(OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto, Model model){
+        OpenBankAccountSearchResponseDto account = openBankService.findAccount(openBankAccountSearchRequestDto);
         model.addAttribute("bankAccounts",account);
         model.addAttribute("useCode",useCode);
         model.addAttribute("access_token",access_token);
@@ -75,10 +75,10 @@ public class OpenBankController {
      * 잔액조회
      */
     @GetMapping("/balance")
-    public String searchBalance(String access_token, BankBalanceRequestDto bankBalanceRequestDto, Model model){
-        BankBalanceResponseDto bankBalanceResponseDto = openBankService.findBalance(access_token, bankBalanceRequestDto);
-        System.out.println(bankBalanceResponseDto);
-        model.addAttribute("accountBalance", bankBalanceResponseDto);
+    public String searchBalance(String access_token, OpenBankBalanceRequestDto openBankBalanceRequestDto, Model model){
+        OpenBankBalanceResponseDto openBankBalanceResponseDto = openBankService.findBalance(access_token, openBankBalanceRequestDto);
+        System.out.println(openBankBalanceResponseDto);
+        model.addAttribute("accountBalance", openBankBalanceResponseDto);
         return "v1/balance";
     }
 

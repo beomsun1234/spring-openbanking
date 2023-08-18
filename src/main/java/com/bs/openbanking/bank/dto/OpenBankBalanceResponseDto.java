@@ -3,7 +3,7 @@ package com.bs.openbanking.bank.dto;
 import lombok.Data;
 
 @Data
-public class BankBalanceResponseDto {
+public class OpenBankBalanceResponseDto {
     private String api_tran_id;
     private String api_tran_dtm;
     private String rsp_code;

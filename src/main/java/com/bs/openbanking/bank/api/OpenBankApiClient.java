@@ -3,7 +3,6 @@ package com.bs.openbanking.bank.api;
 import com.bs.openbanking.bank.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -24,14 +23,14 @@ public class OpenBankApiClient {
      * post 방식으로 key=vale 데이터 요청 (금결원)
      * 토큰요청 http 헤더타입은 application/x-www-form-urlencoded
      */
-    public BankReponseToken requestToken(BankRequestToken bankRequestToken){
+    public OpenBankReponseToken requestToken(OpenBankRequestToken openBankRequestToken){
         HttpHeaders httpHeaders = generateHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
         /**
          * 헤더의 컨텐트 타입이 application/x-www-form-urlencoded;charset=UTF-8이므로 객체를 집어넣을수 없음.. 그러므로 MultiValueMap 사용 해야함
          */
-        HttpEntity httpEntity = generateHttpEntityWithBody(httpHeaders, bankRequestToken.toMultiValueMap());
+        HttpEntity httpEntity = generateHttpEntityWithBody(httpHeaders, openBankRequestToken.toMultiValueMap());
 
-        return restTemplate.exchange(base_url + "/token",HttpMethod.POST, httpEntity ,BankReponseToken.class).getBody();
+        return restTemplate.exchange(base_url + "/token",HttpMethod.POST, httpEntity , OpenBankReponseToken.class).getBody();
     }
     private HttpEntity generateHttpEntityWithBody(HttpHeaders httpHeaders, MultiValueMap body) {
         return new HttpEntity<>(body, httpHeaders);
@@ -39,37 +38,37 @@ public class OpenBankApiClient {
 
     /**
      * 계좌조회
-     * @param accountSearchRequestDto
+     * @param openBankAccountSearchRequestDto
      * @return
      */
-    public BankAccountSearchResponseDto requestAccountList(AccountSearchRequestDto accountSearchRequestDto){
+    public OpenBankAccountSearchResponseDto requestAccountList(OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto){
         String url = base_url+"/account/list";
 
-        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",accountSearchRequestDto.getAccess_token()));
+        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization", openBankAccountSearchRequestDto.getAccess_token()));
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("user_seq_no", accountSearchRequestDto.getUser_seq_no())
-                .queryParam("include_cancel_yn", accountSearchRequestDto.getInclude_cancel_yn())
-                .queryParam("sort_order", accountSearchRequestDto.getSort_order())
+                .queryParam("user_seq_no", openBankAccountSearchRequestDto.getUser_seq_no())
+                .queryParam("include_cancel_yn", openBankAccountSearchRequestDto.getInclude_cancel_yn())
+                .queryParam("sort_order", openBankAccountSearchRequestDto.getSort_order())
                 .build();
 
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET,httpEntity , BankAccountSearchResponseDto.class).getBody();
+        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET,httpEntity , OpenBankAccountSearchResponseDto.class).getBody();
     }
     /**
      * 잔액조회
      */
-    public BankBalanceResponseDto requestBalance(BankBalanceRequestDto bankBalanceRequestDto, String access_token){
+    public OpenBankBalanceResponseDto requestBalance(OpenBankBalanceRequestDto openBankBalanceRequestDto, String access_token){
         String url = base_url+"/account/balance/fin_num";
 
         HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",access_token));
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("bank_tran_id",bankBalanceRequestDto.getBank_tran_id())
-                .queryParam("fintech_use_num", bankBalanceRequestDto.getFintech_use_num())
-                .queryParam("tran_dtime",bankBalanceRequestDto.getTran_dtime())
+                .queryParam("bank_tran_id", openBankBalanceRequestDto.getBank_tran_id())
+                .queryParam("fintech_use_num", openBankBalanceRequestDto.getFintech_use_num())
+                .queryParam("tran_dtime", openBankBalanceRequestDto.getTran_dtime())
                 .build();
 
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, BankBalanceResponseDto.class).getBody();
+        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, OpenBankBalanceResponseDto.class).getBody();
     }
 
     /**

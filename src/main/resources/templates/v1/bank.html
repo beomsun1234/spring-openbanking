@@ -7,15 +7,15 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <body>
 인증완료화면
-<a th:text="${bankReponseToken.access_token}"  th:value="${bankReponseToken.access_token}"></a>
-<a th:text="${bankReponseToken.user_seq_no}" th:value="${bankReponseToken.user_seq_no}"></a>
+<a th:text="${openBankReponseToken.access_token}"  th:value="${openBankReponseToken.access_token}"></a>
+<a th:text="${openBankReponseToken.user_seq_no}" th:value="${openBankReponseToken.user_seq_no}"></a>
 <br>
 
 <form id="account" method="get" action="/account/list">
-    <input type="hidden" th:text="${bankReponseToken.access_token}" id="token" name="access_token" th:value="${bankReponseToken.access_token}"></input>
-    <input type="hidden" th:text="${bankReponseToken.user_seq_no}" id="user_seq_no" name="user_seq_no" th:value="${bankReponseToken.user_seq_no}"></input>
-    <input type="hidden" th:text="${bankReponseToken.user_seq_no}" id="include_cancel_yn" name="include_cancel_yn" value="Y"></input>
-    <input type="hidden" th:text="${bankReponseToken.user_seq_no}" id="sort_order" name="sort_order" th:value="D"></input>
+    <input type="hidden" th:text="${openBankReponseToken.access_token}" id="token" name="access_token" th:value="${openBankReponseToken.access_token}"></input>
+    <input type="hidden" th:text="${openBankReponseToken.user_seq_no}" id="user_seq_no" name="user_seq_no" th:value="${openBankReponseToken.user_seq_no}"></input>
+    <input type="hidden" th:text="${openBankReponseToken.user_seq_no}" id="include_cancel_yn" name="include_cancel_yn" value="Y"></input>
+    <input type="hidden" th:text="${openBankReponseToken.user_seq_no}" id="sort_order" name="sort_order" th:value="D"></input>
     <button type="submit">계좌조회</button>
 </form>
 </body>

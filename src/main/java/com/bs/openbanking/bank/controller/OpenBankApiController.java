@@ -18,17 +18,17 @@ public class OpenBankApiController {
 
 
     @GetMapping("/auth/openbank/callback")
-    public BankReponseToken getToken(BankRequestToken bankRequestToken){
-        BankReponseToken bankReponseToken = openBankService.requestToken(bankRequestToken);
+    public OpenBankReponseToken getToken(OpenBankRequestToken openBankRequestToken){
+        OpenBankReponseToken openBankReponseToken = openBankService.requestToken(openBankRequestToken);
         /**
          * todo -- token, 사용자 번호, 만료기간 저장
          */
-        return bankReponseToken;
+        return openBankReponseToken;
     }
 
     @GetMapping("/api/account/list")
-    public List<AccountResponseDto> getAccountWithBalance(@RequestBody AccountSearchRequestDto accountSearchRequestDto) {
-        return openBankService.getAccountWithBalance(accountSearchRequestDto);
+    public List<OpenBankAccountResponseDto> getAccountWithBalance(@RequestBody OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto) {
+        return openBankService.getAccountWithBalance(openBankAccountSearchRequestDto);
     }
 }
 

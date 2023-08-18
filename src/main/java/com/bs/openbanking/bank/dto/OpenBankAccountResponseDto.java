@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class AccountResponseDto {
+public class OpenBankAccountResponseDto {
     private String fintech_use_num;
     private String bank_name;
     private String account_num;
@@ -13,7 +13,7 @@ public class AccountResponseDto {
     private String balance_amt;
 
     @Builder
-    public AccountResponseDto(String fintech_use_num, String bank_name, String account_num, String account_num_masked, String account_seq, String balance_amt){
+    public OpenBankAccountResponseDto(String fintech_use_num, String bank_name, String account_num, String account_num_masked, String account_seq, String balance_amt){
         this.fintech_use_num = fintech_use_num;
         this.balance_amt = balance_amt;
         this.account_num = account_num;

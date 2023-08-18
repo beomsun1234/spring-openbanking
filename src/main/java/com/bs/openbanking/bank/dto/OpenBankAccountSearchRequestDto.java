@@ -3,7 +3,7 @@ package com.bs.openbanking.bank.dto;
 import lombok.Data;
 
 @Data
-public class AccountSearchRequestDto {
+public class OpenBankAccountSearchRequestDto {
     private String access_token;
     private String user_seq_no;
     private String include_cancel_yn;
