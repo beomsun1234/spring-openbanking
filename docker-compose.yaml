@@ -1,0 +1,19 @@
+version: "3"
+services:
+  postgresql:
+    image: postgres
+    restart: always
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    # 환경 변수 설정
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    # 볼륨 설정
+    volumes:
+      -  data:/var/lib/postgresql/data
+
+volumes:
+  data:
