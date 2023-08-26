@@ -3,6 +3,7 @@ package com.bs.openbanking.bank.service;
 import com.bs.openbanking.bank.api.OpenBankApiClient;
 import com.bs.openbanking.bank.dto.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -23,20 +26,32 @@ class OpenBankServiceTest {
     @InjectMocks
     private OpenBankService openBankService;
 
+    @BeforeEach
+    public void setUp() {
+        ReflectionTestUtils.setField(openBankService,
+                "clientId",
+                "test");
+        ReflectionTestUtils.setField(openBankService,
+                "client_secret",
+                "test");
+        ReflectionTestUtils.setField(openBankService,
+                "useCode",
+                "test");
+        ReflectionTestUtils.setField(openBankService,
+                "redirect_uri",
+                "http://localhsot:30000000/test");
+    }
 
     @Test
     void requestTokenTest() {
         //given
-        OpenBankRequestToken openBankRequestToken = new OpenBankRequestToken();
-        openBankRequestToken.setCode("test");
-        openBankRequestToken.setBankRequestToken("test", "test", "test", "test");
-
+        TokenRequestDto tokenRequestDto = TokenRequestDto.builder().code("test").memberId(1L).build();
         OpenBankReponseToken expect = new OpenBankReponseToken();
         expect.setAccess_token("test");
 
-        Mockito.when(openBankApiClient.requestToken(openBankRequestToken)).thenReturn(expect);
+        Mockito.when(openBankApiClient.requestToken(Mockito.any(OpenBankRequestToken.class))).thenReturn(expect);
         //when
-        OpenBankReponseToken result = openBankService.requestToken(openBankRequestToken);
+        OpenBankReponseToken result = openBankService.requestToken(tokenRequestDto);
         //then
         Assertions.assertEquals(expect.getAccess_token(), result.getAccess_token());
     }
@@ -44,18 +59,14 @@ class OpenBankServiceTest {
     @Test
     void findAccountTest() {
         //given
-        OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto = new OpenBankAccountSearchRequestDto();
-        openBankAccountSearchRequestDto.setUser_seq_no("1");
-        openBankAccountSearchRequestDto.setSort_order("D");
-        openBankAccountSearchRequestDto.setAccess_token("test");
-        openBankAccountSearchRequestDto.setInclude_cancel_yn("N");
+        AccountRequestDto accountRequestDto = AccountRequestDto.builder().accessToken("test").openBankId("1").build();
 
         OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
         expect.setUser_name("park");
 
-        Mockito.when(openBankApiClient.requestAccountList(openBankAccountSearchRequestDto)).thenReturn(expect);
+        Mockito.when(openBankApiClient.requestAccountList(Mockito.any(OpenBankAccountSearchRequestDto.class))).thenReturn(expect);
         //when
-        OpenBankAccountSearchResponseDto result = openBankService.findAccount(openBankAccountSearchRequestDto);
+        OpenBankAccountSearchResponseDto result = openBankService.findAccount(accountRequestDto);
         //then
         Assertions.assertEquals(expect.getUser_name(), result.getUser_name());
     }
@@ -63,15 +74,14 @@ class OpenBankServiceTest {
     @Test
     void findBalanceTest() {
         //given
-        OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder()
-                .fintech_use_num("123").build();
+        BalanceRequestDto balanceRequestDto = BalanceRequestDto.builder().fintechUseNum("test").accessToken("test").memberId(1L).build();
 
         OpenBankBalanceResponseDto expect = new OpenBankBalanceResponseDto();
         expect.setBalance_amt("10000");
 
-        Mockito.when(openBankApiClient.requestBalance(openBankBalanceRequestDto, "test")).thenReturn(expect);
+        Mockito.when(openBankApiClient.requestBalance(Mockito.any(OpenBankBalanceRequestDto.class))).thenReturn(expect);
         //when
-        OpenBankBalanceResponseDto result = openBankService.findBalance("test", openBankBalanceRequestDto);
+        OpenBankBalanceResponseDto result = openBankService.findBalance(balanceRequestDto);
         //then
         Assertions.assertEquals(expect.getBalance_amt(), result.getBalance_amt());
     }
@@ -79,11 +89,7 @@ class OpenBankServiceTest {
     @Test
     void getAccountWithBalance() throws ExecutionException, InterruptedException {
         //given
-        OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto = new OpenBankAccountSearchRequestDto();
-        openBankAccountSearchRequestDto.setUser_seq_no("1");
-        openBankAccountSearchRequestDto.setSort_order("D");
-        openBankAccountSearchRequestDto.setAccess_token("test");
-        openBankAccountSearchRequestDto.setInclude_cancel_yn("N");
+        AccountRequestDto accountRequestDto = AccountRequestDto.builder().accessToken("test").openBankId("1").build();
 
         OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
         expect.setUser_name("park");
@@ -104,7 +110,7 @@ class OpenBankServiceTest {
 
         expect.setRes_list(List.of(resAccount, resAccount2));
 
-        Mockito.when(openBankApiClient.requestAccountList(openBankAccountSearchRequestDto)).thenReturn(expect);
+        Mockito.when(openBankApiClient.requestAccountList(Mockito.any(OpenBankAccountSearchRequestDto.class))).thenReturn(expect);
 
         expect.getRes_list().forEach(openBankAccountDto1 -> {
             CompletableFuture.runAsync(()->{
@@ -114,13 +120,13 @@ class OpenBankServiceTest {
                 expect2.setFintech_use_num(openBankAccountDto1.getFintech_use_num());
                 expect2.setBank_name(openBankAccountDto1.getBank_name());
 
-                Mockito.when(openBankApiClient.requestBalance(Mockito.any(OpenBankBalanceRequestDto.class), Mockito.eq("test")))
+                Mockito.when(openBankApiClient.requestBalance(Mockito.any(OpenBankBalanceRequestDto.class)))
                         .thenReturn(expect2);
             }).join();
         });
 
         //when
-        List<OpenBankAccountResponseDto> result = openBankService.getAccountWithBalance(openBankAccountSearchRequestDto);
+        List<OpenBankAccountResponseDto> result = openBankService.getAccountWithBalance(accountRequestDto);
         //then
         Assertions.assertEquals(2, result.size());
         Assertions.assertEquals("20000", result.get(0).getBalance_amt());
