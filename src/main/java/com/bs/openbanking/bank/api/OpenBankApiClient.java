@@ -16,7 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class OpenBankApiClient {
     private final RestTemplate restTemplate;
-    private static final String base_url = "https://testapi.openbanking.or.kr/v2.0";
+    private static final String base_url = "https://testapi.openbanking.or.kr";
 
     /**
      * 토큰발급요청
@@ -30,7 +30,7 @@ public class OpenBankApiClient {
          */
         HttpEntity httpEntity = generateHttpEntityWithBody(httpHeaders, openBankRequestToken.toMultiValueMap());
 
-        return restTemplate.exchange(base_url + "/token",HttpMethod.POST, httpEntity , OpenBankReponseToken.class).getBody();
+        return restTemplate.exchange(base_url + "/oauth/2.0/token",HttpMethod.POST, httpEntity , OpenBankReponseToken.class).getBody();
     }
     private HttpEntity generateHttpEntityWithBody(HttpHeaders httpHeaders, MultiValueMap body) {
         return new HttpEntity<>(body, httpHeaders);
@@ -57,10 +57,10 @@ public class OpenBankApiClient {
     /**
      * 잔액조회
      */
-    public OpenBankBalanceResponseDto requestBalance(OpenBankBalanceRequestDto openBankBalanceRequestDto, String access_token){
+    public OpenBankBalanceResponseDto requestBalance(OpenBankBalanceRequestDto openBankBalanceRequestDto){
         String url = base_url+"/account/balance/fin_num";
 
-        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",access_token));
+        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",openBankBalanceRequestDto.getAccess_token()));
 
         UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("bank_tran_id", openBankBalanceRequestDto.getBank_tran_id())
@@ -76,7 +76,7 @@ public class OpenBankApiClient {
      * 계좌이체
      */
     public AccountTransferResponseDto requestTransfer(String access_token, AccountTransferRequestDto accountTransferRequestDto){
-        String url = base_url+"//transfer/withdraw/fin_num";
+        String url = base_url+"/transfer/withdraw/fin_num";
 
         accountTransferRequestDto.setTran_dtime(OpenBankUtil.getTransTime());
 

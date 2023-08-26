@@ -45,7 +45,6 @@ public class OpenBankController {
 
     @Value("${openbank.access-token}")
     private String access_token;
-    private final static String redirect_uri = "http://localhost:8080/auth/openbank/callback";
     private final OpenBankService openBankService;
 
     @GetMapping("/")
@@ -58,13 +57,13 @@ public class OpenBankController {
     /**
      * 계좌조회
      * dto 만들기
-     * @param openBankAccountSearchRequestDto
+     * @param accountRequestDto
      * @param model
      * @return
      */
     @GetMapping("/account/list")
-    public String searchAccountList(OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto, Model model){
-        OpenBankAccountSearchResponseDto account = openBankService.findAccount(openBankAccountSearchRequestDto);
+    public String searchAccountList(AccountRequestDto accountRequestDto, Model model){
+        OpenBankAccountSearchResponseDto account = openBankService.findAccount(accountRequestDto);
         model.addAttribute("bankAccounts",account);
         model.addAttribute("useCode",useCode);
         model.addAttribute("access_token",access_token);
@@ -75,8 +74,8 @@ public class OpenBankController {
      * 잔액조회
      */
     @GetMapping("/balance")
-    public String searchBalance(String access_token, OpenBankBalanceRequestDto openBankBalanceRequestDto, Model model){
-        OpenBankBalanceResponseDto openBankBalanceResponseDto = openBankService.findBalance(access_token, openBankBalanceRequestDto);
+    public String searchBalance(BalanceRequestDto balanceRequestDto, Model model){
+        OpenBankBalanceResponseDto openBankBalanceResponseDto = openBankService.findBalance(balanceRequestDto);
         System.out.println(openBankBalanceResponseDto);
         model.addAttribute("accountBalance", openBankBalanceResponseDto);
         return "v1/balance";

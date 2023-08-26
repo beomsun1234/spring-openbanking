@@ -19,50 +19,71 @@ public class OpenBankService {
     private final String useCode;
     private final String clientId;
     private final String client_secret;
-    private static final  String redirect_uri = "http://localhost:8080/auth/openbank/callback";
+
+    //redirect 주소는 프론트엔드 주소로 변경
+    private final  String redirect_uri;
     private final OpenBankApiClient openBankApiClient;
     public OpenBankService(@Value("${openbank.useCode}") String useCode,
                            @Value("${openbank.client-id}") String clientId,
                            @Value("${openbank.client-secret}") String client_secret,
+                           @Value("${openbank.redirect_uri}") String redirect_uri,
                            OpenBankApiClient openBankApiClient){
         this.useCode = useCode;
         this.clientId = clientId;
         this.client_secret = client_secret;
+        this.redirect_uri = redirect_uri;
         this.openBankApiClient = openBankApiClient;
     }
 
     /**
      * 토큰요청
-     * @param openBankRequestToken
+     * @param
      * @return
      */
-    public OpenBankReponseToken requestToken(OpenBankRequestToken openBankRequestToken){
-        openBankRequestToken.setBankRequestToken(clientId,client_secret,redirect_uri,"authorization_code");
-        return openBankApiClient.requestToken(openBankRequestToken);
+
+    public OpenBankReponseToken requestToken(TokenRequestDto tokenRequestDto){
+        OpenBankRequestToken openBankRequestToken = OpenBankRequestToken.builder()
+                .code(tokenRequestDto.getCode())
+                .client_id(clientId)
+                .client_secret(client_secret)
+                .redirect_uri(redirect_uri)
+                .grant_type("authorization_code")
+                .build();
+        OpenBankReponseToken openBankReponseToken = openBankApiClient.requestToken(openBankRequestToken);
+        return openBankReponseToken;
     }
+
 
     /**
      * 계좌조회
-     * @param openBankAccountSearchRequestDto
+     * @param
      * @return
      */
-    public OpenBankAccountSearchResponseDto findAccount(OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto){
-       return openBankApiClient.requestAccountList(openBankAccountSearchRequestDto);
+    public OpenBankAccountSearchResponseDto findAccount(AccountRequestDto accountRequestDto){
+        OpenBankAccountSearchRequestDto searchRequestDto = OpenBankAccountSearchRequestDto.builder().user_seq_no(accountRequestDto.getOpenBankId())
+                .access_token(accountRequestDto.getAccessToken())
+                .include_cancel_yn("N")
+                .sort_order("Y")
+                .build();
+        return openBankApiClient.requestAccountList(searchRequestDto);
     }
 
     /**
      * 잔액조회
-     * @param access_token
-     * @param openBankBalanceRequestDto
      * @return
      */
-    public OpenBankBalanceResponseDto findBalance(String access_token, OpenBankBalanceRequestDto openBankBalanceRequestDto){
+    public OpenBankBalanceResponseDto findBalance(BalanceRequestDto balanceRequestDto){
         /**
          * bank_tran_id의 경우 규칙이있다. 핀테크이용번호+ "U" + "랜덤한 9자리숫자"
          */
-        openBankBalanceRequestDto.setBankTransIdAndTransDateTime(OpenBankUtil.getRandomNumber(useCode + "U"), OpenBankUtil.getTransTime());
+        OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder()
+                .accessToken(balanceRequestDto.getAccessToken())
+                .fintech_use_num(balanceRequestDto.getFintechUseNum())
+                .bank_tran_id(OpenBankUtil.getRandomNumber(useCode + "U"))
+                .tran_dtime(OpenBankUtil.getTransTime())
+                .build();
 
-        OpenBankBalanceResponseDto openBankBalanceResponseDto = openBankApiClient.requestBalance(openBankBalanceRequestDto, access_token);
+        OpenBankBalanceResponseDto openBankBalanceResponseDto = openBankApiClient.requestBalance(openBankBalanceRequestDto);
         return openBankBalanceResponseDto;
     }
     public AccountTransferResponseDto accountTransfer(String access_token, AccountTransferRequestDto accountTransferRequestDto){
@@ -71,14 +92,14 @@ public class OpenBankService {
 
     /**
      * 계좌조회 및 금액조회
-     * @param openBankAccountSearchRequestDto
+     * @param
      * @return
      */
-    public List<OpenBankAccountResponseDto> getAccountWithBalance(OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto){
+    public List<OpenBankAccountResponseDto> getAccountWithBalance(AccountRequestDto accountRequestDto){
         /**
          * 계좌정보 불러옴
          */
-        List<OpenBankAccountDto> openBankAccountDtoList = findAccount(openBankAccountSearchRequestDto).getRes_list();
+        List<OpenBankAccountDto> openBankAccountDtoList = findAccount(accountRequestDto).getRes_list();
         /**
          * 풀에서 관리하는 스레드 수를 설정한다.
          * 한 계좌번호당 스레드가 할당되도록 하며 최대개수는 100이하로 설정
@@ -94,8 +115,10 @@ public class OpenBankService {
          */
         List<OpenBankAccountResponseDto> openBankAccountResponseDtoList = openBankAccountDtoList.stream()
                 .map(openBankAccountDto -> CompletableFuture.supplyAsync(() -> {
-                            OpenBankBalanceResponseDto balance = findBalance(openBankAccountSearchRequestDto.getAccess_token(), OpenBankBalanceRequestDto
-                                    .builder().fintech_use_num(openBankAccountDto.getFintech_use_num()).build());
+                            OpenBankBalanceResponseDto balance = findBalance(BalanceRequestDto
+                                    .builder()
+                                    .fintechUseNum(openBankAccountDto.getFintech_use_num()
+                                            ).accessToken(accountRequestDto.getAccessToken()).build());
 
                             OpenBankAccountResponseDto openBankAccountResponseDto = OpenBankAccountResponseDto
                                     .builder()

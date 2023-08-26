@@ -1,5 +1,6 @@
 package com.bs.openbanking.bank.dto;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -13,8 +14,10 @@ public class OpenBankRequestToken {
     private String grant_type; //고정값: authorization_code
 
 
-    public void setBankRequestToken(String client_id,String client_secret, String redirect_uri, String grant_type){
-        this.client_id= client_id;
+    @Builder
+    public OpenBankRequestToken(String code, String client_id, String client_secret, String redirect_uri, String grant_type) {
+        this.code = code;
+        this.client_id = client_id;
         this.client_secret = client_secret;
         this.redirect_uri = redirect_uri;
         this.grant_type = grant_type;
