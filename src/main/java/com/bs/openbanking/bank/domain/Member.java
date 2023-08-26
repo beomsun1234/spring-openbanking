@@ -30,7 +30,7 @@ public class Member {
         this.openBankId = openBankId;
     }
 
-    public void setOpenBankId(String openBankId){
+    public void updateOpenBankId(String openBankId){
         this.openBankId = openBankId;
     }
 
