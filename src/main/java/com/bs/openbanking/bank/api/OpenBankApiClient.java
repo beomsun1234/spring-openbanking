@@ -42,7 +42,7 @@ public class OpenBankApiClient {
      * @return
      */
     public OpenBankAccountSearchResponseDto requestAccountList(OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto){
-        String url = base_url+"/account/list";
+        String url = base_url+"/v2.0/account/list";
 
         HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization", openBankAccountSearchRequestDto.getAccess_token()));
 
@@ -58,7 +58,7 @@ public class OpenBankApiClient {
      * 잔액조회
      */
     public OpenBankBalanceResponseDto requestBalance(OpenBankBalanceRequestDto openBankBalanceRequestDto){
-        String url = base_url+"/account/balance/fin_num";
+        String url = base_url+"/v2.0/account/balance/fin_num";
 
         HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization",openBankBalanceRequestDto.getAccess_token()));
 
@@ -76,7 +76,7 @@ public class OpenBankApiClient {
      * 계좌이체
      */
     public AccountTransferResponseDto requestTransfer(String access_token, AccountTransferRequestDto accountTransferRequestDto){
-        String url = base_url+"/transfer/withdraw/fin_num";
+        String url = base_url+"/v2.0/transfer/withdraw/fin_num";
 
         accountTransferRequestDto.setTran_dtime(OpenBankUtil.getTransTime());
 

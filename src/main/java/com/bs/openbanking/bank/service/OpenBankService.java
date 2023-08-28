@@ -26,7 +26,7 @@ public class OpenBankService {
     public OpenBankService(@Value("${openbank.useCode}") String useCode,
                            @Value("${openbank.client-id}") String clientId,
                            @Value("${openbank.client-secret}") String client_secret,
-                           @Value("${openbank.redirect_uri}") String redirect_uri,
+                           @Value("${openbank.redirect-url}") String redirect_uri,
                            OpenBankApiClient openBankApiClient){
         this.useCode = useCode;
         this.clientId = clientId;
