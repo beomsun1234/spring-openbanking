@@ -76,7 +76,7 @@ class OpenBankApiClientTest {
                         .user_seq_no("1")
                         .include_cancel_yn("N").build();
 
-        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+ "/account/list")
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+ "/v2.0/account/list")
                 .queryParam("user_seq_no", openBankAccountSearchRequestDto.getUser_seq_no())
                 .queryParam("include_cancel_yn", openBankAccountSearchRequestDto.getInclude_cancel_yn())
                 .queryParam("sort_order", openBankAccountSearchRequestDto.getSort_order())
@@ -101,7 +101,7 @@ class OpenBankApiClientTest {
         //given
         OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder().bank_tran_id("test").fintech_use_num("123").tran_dtime(OpenBankUtil.getTransTime()).build();
 
-        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/account/balance/fin_num")
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/v2.0/account/balance/fin_num")
                 .queryParam("bank_tran_id", openBankBalanceRequestDto.getBank_tran_id())
                 .queryParam("fintech_use_num", openBankBalanceRequestDto.getFintech_use_num())
                 .queryParam("tran_dtime", openBankBalanceRequestDto.getTran_dtime())
