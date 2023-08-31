@@ -4,6 +4,7 @@ import com.bs.openbanking.bank.api.OpenBankApiClient;
 import com.bs.openbanking.bank.api.OpenBankUtil;
 import com.bs.openbanking.bank.dto.*;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Slf4j
 public class OpenBankService {
     private final String useCode;
     private final String clientId;
@@ -115,27 +117,40 @@ public class OpenBankService {
          */
         List<OpenBankAccountResponseDto> openBankAccountResponseDtoList = openBankAccountDtoList.stream()
                 .map(openBankAccountDto -> CompletableFuture.supplyAsync(() -> {
-                            OpenBankBalanceResponseDto balance = findBalance(BalanceRequestDto
-                                    .builder()
-                                    .fintechUseNum(openBankAccountDto.getFintech_use_num()
-                                            ).accessToken(accountRequestDto.getAccessToken()).build());
-
-                            OpenBankAccountResponseDto openBankAccountResponseDto = OpenBankAccountResponseDto
+                    String amt = "";
+                    try {
+                        OpenBankBalanceResponseDto balance = findBalance(BalanceRequestDto
+                                .builder()
+                                .fintechUseNum(openBankAccountDto.getFintech_use_num())
+                                .accessToken(accountRequestDto.getAccessToken()).build());
+                        amt = balance.getBalance_amt();
+                    }
+                    catch (RuntimeException e){
+                        log.error(e.getMessage());
+                    }
+                    OpenBankAccountResponseDto openBankAccountResponseDto = OpenBankAccountResponseDto
                                     .builder()
                                     .account_num(openBankAccountDto.getAccount_num())
                                     .account_num_masked(openBankAccountDto.getAccount_num_masked())
                                     .fintech_use_num(openBankAccountDto.getFintech_use_num())
                                     .bank_name(openBankAccountDto.getBank_name())
-                                    .balance_amt(balance.getBalance_amt())
+                                    .balance_amt(amt)
                                     .build();
 
                             return openBankAccountResponseDto;
-                        }, executorService)
+                            }, executorService)
                 )
                 .collect(Collectors.toList())
                 .stream()
                 .map(CompletableFuture::join)
                 .collect(Collectors.toList());
         return openBankAccountResponseDtoList;
+    }
+
+    /**
+     * 오픈뱅킹이 가지고 있는 user ci 정보 가지고 오기
+     */
+    public OpenBankUserInfoResponseDto findOpenBankUserInfo(OpenBankUserInfoRequestDto openBankUserInfoRequestDto){
+        return openBankApiClient.requestOpenBankUserInfo(openBankUserInfoRequestDto);
     }
 }

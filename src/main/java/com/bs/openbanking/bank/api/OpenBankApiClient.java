@@ -2,9 +2,6 @@ package com.bs.openbanking.bank.api;
 
 import com.bs.openbanking.bank.dto.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import javassist.NotFoundException;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -119,6 +116,26 @@ public class OpenBankApiClient {
         AccountTransferResponseDto transferResponseDto = restTemplate.exchange(url, HttpMethod.POST, param, AccountTransferResponseDto.class).getBody();
 
         return transferResponseDto;
+    }
+
+    /**
+     * 유저정보 가져오기 - ci 값, 등록계좌
+     */
+    public OpenBankUserInfoResponseDto requestOpenBankUserInfo(OpenBankUserInfoRequestDto openBankUserInfoRequestDto){
+        String url = base_url+"/v2.0/user/me";
+
+        HttpEntity httpEntity = generateHttpEntity(generateHeader("Authorization", openBankUserInfoRequestDto.getAccessToken()));
+
+        UriComponents builder = UriComponentsBuilder.fromHttpUrl(url)
+                .queryParam("user_seq_no", openBankUserInfoRequestDto.getOpenBankId())
+                .build();
+        OpenBankUserInfoResponseDto openBankUserInfoResponseDto = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, OpenBankUserInfoResponseDto.class).getBody();
+
+        if (isErrorCode(openBankUserInfoResponseDto.getRsp_code())){
+            log.error("error code : {}, error msg : {}", openBankUserInfoResponseDto.getRsp_code(), openBankUserInfoResponseDto.getRsp_message());
+            throw new RuntimeException(openBankUserInfoResponseDto.getRsp_message());
+        }
+        return openBankUserInfoResponseDto;
     }
 
     /**

@@ -1,10 +1,11 @@
 package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.domain.Member;
-import com.bs.openbanking.bank.dto.MemberDto;
-import com.bs.openbanking.bank.dto.SignInDto;
-import com.bs.openbanking.bank.dto.SignUpDto;
+import com.bs.openbanking.bank.domain.OpenBankToken;
+import com.bs.openbanking.bank.dto.*;
+import com.bs.openbanking.bank.repository.AccountRepository;
 import com.bs.openbanking.bank.repository.MemberRepository;
+import com.bs.openbanking.bank.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,32 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final TokenRepository tokenRepository;
+    private final OpenBankService openBankService;
 
     @Transactional
     public Long signUp(SignUpDto signUpDto){
         Member member = memberRepository.save(signUpDto.toEntity());
         return member.getId();
+    }
+    @Transactional
+    public void addOpenBankInfo(Long memberId, String openBankId){
+
+        Member member = memberRepository.findById(memberId).orElseThrow();
+
+        if (member.hasOpenBankCi()){
+            throw new RuntimeException("ci 정보를 이미 가지고있습니다.");
+        }
+
+        OpenBankToken openBankToken = tokenRepository.findOpenBankTokenByMemberId(memberId).orElseThrow();
+
+        OpenBankUserInfoResponseDto openBankUserInfo = openBankService.findOpenBankUserInfo(OpenBankUserInfoRequestDto
+                .builder()
+                .accessToken(openBankToken.getAccessToken())
+                .openBankId(openBankId)
+                .build());
+
+        member.updateOpenBankCi(openBankUserInfo.getUser_ci());
     }
 
 

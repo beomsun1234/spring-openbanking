@@ -35,4 +35,10 @@ public class MemberApiController {
         return ResponseEntity.ok().body(member);
     }
 
+    @PutMapping("members/{id}/openbank/user")
+    public ResponseEntity add(@PathVariable Long id, @RequestParam(value = "open-bank-id") String openBankId){
+        memberService.addOpenBankInfo(id,openBankId);
+        return ResponseEntity.ok().build();
+    }
+
 }
