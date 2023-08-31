@@ -6,12 +6,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -21,16 +22,14 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {Config.class, OpenBankUtil.class, OpenBankApiClient.class})
 @ActiveProfiles(profiles = "openbank")
+@ContextConfiguration(classes = {Config.class, OpenBankApiClient.class})
 class OpenBankApiClientTest {
 
     @Autowired
-    private OpenBankApiClient openBankApiClient;
-
-    @Autowired
     private RestTemplate restTemplate;
-
+    @Autowired
+    private OpenBankApiClient openBankApiClient;
     private MockRestServiceServer mockServer;
     private String baseUrl = "https://testapi.openbanking.or.kr";
 
@@ -41,6 +40,7 @@ class OpenBankApiClientTest {
     }
 
     @Test
+    @DisplayName("성공")
     void requestTokenTest() throws JsonProcessingException {
         //given
         OpenBankRequestToken openBankRequestToken = OpenBankRequestToken
@@ -65,8 +65,37 @@ class OpenBankApiClientTest {
         //then
         Assertions.assertEquals(expect.getAccess_token(),result.getAccess_token() );
     }
+    @Test
+    @DisplayName("실패")
+    void requestTokenTest_실패() throws JsonProcessingException {
+        //given
+        OpenBankRequestToken openBankRequestToken = OpenBankRequestToken
+                .builder()
+                .code("test")
+                .client_id("test")
+                .redirect_uri("test")
+                .grant_type("test")
+                .client_secret("test")
+                .build();
+
+        OpenBankFailureResponseDto openBankFailureResponseDto = new OpenBankFailureResponseDto();
+        openBankFailureResponseDto.setRsp_code("00001");
+        openBankFailureResponseDto.setRsp_message("error test");
+
+        String resBody = mapper.writeValueAsString(openBankFailureResponseDto);
+
+        this.mockServer
+                .expect(requestTo(baseUrl + "/oauth/2.0/token"))
+                .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
+        //when, then
+
+        Assertions.assertThrows(
+                RuntimeException.class, ()-> openBankApiClient.requestToken(openBankRequestToken)
+        );
+    }
 
     @Test
+    @DisplayName("성공")
     void requestAccountTest() throws JsonProcessingException {
         //given
         OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto  =
@@ -95,6 +124,34 @@ class OpenBankApiClientTest {
         //then
         Assertions.assertEquals(expect.getUser_name(),result.getUser_name());
     }
+    @Test
+    @DisplayName("실패")
+    void requestAccountTest_실패() throws JsonProcessingException {
+        //given
+        OpenBankAccountSearchRequestDto openBankAccountSearchRequestDto  =
+                OpenBankAccountSearchRequestDto.builder()
+                        .access_token("test")
+                        .sort_order("D")
+                        .user_seq_no("1")
+                        .include_cancel_yn("N").build();
+
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+ "/v2.0/account/list")
+                .queryParam("user_seq_no", openBankAccountSearchRequestDto.getUser_seq_no())
+                .queryParam("include_cancel_yn", openBankAccountSearchRequestDto.getInclude_cancel_yn())
+                .queryParam("sort_order", openBankAccountSearchRequestDto.getSort_order())
+                .build().toUriString();
+
+        OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
+        expect.setRsp_code("O0001");
+
+        String resBody = mapper.writeValueAsString(expect);
+
+        this.mockServer
+                .expect(requestTo(url))
+                .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
+        //when, then
+        Assertions.assertThrows(RuntimeException.class, () -> openBankApiClient.requestAccountList(openBankAccountSearchRequestDto));
+    }
 
     @Test
     void requestBalanceTest() throws JsonProcessingException {
@@ -119,6 +176,30 @@ class OpenBankApiClientTest {
         OpenBankBalanceResponseDto result = openBankApiClient.requestBalance(openBankBalanceRequestDto);
         //then
         Assertions.assertEquals( expect.getBalance_amt(),result.getBalance_amt() );
+    }
+
+    @Test
+    @DisplayName("실패")
+    void requestBalanceTest_실패() throws JsonProcessingException {
+        //given
+        OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder().bank_tran_id("test").fintech_use_num("123").tran_dtime(OpenBankUtil.getTransTime()).build();
+
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/v2.0/account/balance/fin_num")
+                .queryParam("bank_tran_id", openBankBalanceRequestDto.getBank_tran_id())
+                .queryParam("fintech_use_num", openBankBalanceRequestDto.getFintech_use_num())
+                .queryParam("tran_dtime", openBankBalanceRequestDto.getTran_dtime())
+                .build().toUriString();
+
+        OpenBankBalanceResponseDto expect = new OpenBankBalanceResponseDto();
+        expect.setRsp_code("O0001");
+
+        String resBody = mapper.writeValueAsString(expect);
+
+        this.mockServer
+                .expect(requestTo(url))
+                .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
+        //when, then
+        Assertions.assertThrows(RuntimeException.class, ()-> openBankApiClient.requestBalance(openBankBalanceRequestDto));
     }
 
 }
