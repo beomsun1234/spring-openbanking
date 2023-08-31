@@ -1,6 +1,6 @@
 package com.bs.openbanking.bank.api;
 
-import org.springframework.context.annotation.Bean;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -41,6 +41,10 @@ public class OpenBankUtil {
     public static String trimAccountNum(String accountNum, int length){
         String account = accountNum.substring(0, length - 3);
         return account;
+    }
+
+    public static ObjectMapper objectMapper(){
+        return new ObjectMapper();
     }
 
 }
