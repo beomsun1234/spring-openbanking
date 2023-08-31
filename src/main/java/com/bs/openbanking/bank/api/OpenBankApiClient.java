@@ -1,6 +1,10 @@
 package com.bs.openbanking.bank.api;
 
 import com.bs.openbanking.bank.dto.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javassist.NotFoundException;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -10,6 +14,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Optional;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -17,7 +23,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class OpenBankApiClient {
     private final RestTemplate restTemplate;
     private static final String base_url = "https://testapi.openbanking.or.kr";
-
     /**
      * 토큰발급요청
      * post 방식으로 key=vale 데이터 요청 (금결원)
@@ -30,12 +35,31 @@ public class OpenBankApiClient {
          */
         HttpEntity httpEntity = generateHttpEntityWithBody(httpHeaders, openBankRequestToken.toMultiValueMap());
 
-        return restTemplate.exchange(base_url + "/oauth/2.0/token",HttpMethod.POST, httpEntity , OpenBankReponseToken.class).getBody();
+        String body = restTemplate.exchange(base_url + "/oauth/2.0/token", HttpMethod.POST, httpEntity, String.class).getBody();
+
+        try {
+            OpenBankReponseToken openBankReponseToken = OpenBankUtil.objectMapper().readValue(body, OpenBankReponseToken.class);
+            return openBankReponseToken;
+        } catch (JsonProcessingException e) {
+            OpenBankFailureResponseDto openBankError = getOpenBankRequestError(body);
+            log.error("error code : {}, error msg : {}", openBankError.getRsp_code(), openBankError.getRsp_message());
+            throw new RuntimeException(openBankError.getRsp_message());
+        }
     }
     private HttpEntity generateHttpEntityWithBody(HttpHeaders httpHeaders, MultiValueMap body) {
         return new HttpEntity<>(body, httpHeaders);
     }
-
+    /**
+     * openBankResponse data To Error data
+     **/
+    private OpenBankFailureResponseDto getOpenBankRequestError(String body){
+        try {
+            OpenBankFailureResponseDto openBankFailureResponseDto = Optional.ofNullable(OpenBankUtil.objectMapper().readValue(body, OpenBankFailureResponseDto.class)).orElseThrow();
+            return openBankFailureResponseDto;
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     /**
      * 계좌조회
      * @param openBankAccountSearchRequestDto
@@ -52,7 +76,12 @@ public class OpenBankApiClient {
                 .queryParam("sort_order", openBankAccountSearchRequestDto.getSort_order())
                 .build();
 
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET,httpEntity , OpenBankAccountSearchResponseDto.class).getBody();
+        OpenBankAccountSearchResponseDto bankAccountSearchResponseDto = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, OpenBankAccountSearchResponseDto.class).getBody();
+        if(isErrorCode(bankAccountSearchResponseDto.getRsp_code())){
+            log.error("error code : {}, error msg : {}", bankAccountSearchResponseDto.getRsp_code(), bankAccountSearchResponseDto.getRsp_message());
+            throw new RuntimeException(bankAccountSearchResponseDto.getRsp_message());
+        }
+        return bankAccountSearchResponseDto;
     }
     /**
      * 잔액조회
@@ -68,7 +97,12 @@ public class OpenBankApiClient {
                 .queryParam("tran_dtime", openBankBalanceRequestDto.getTran_dtime())
                 .build();
 
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, OpenBankBalanceResponseDto.class).getBody();
+        OpenBankBalanceResponseDto openBankBalanceResponseDto = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, OpenBankBalanceResponseDto.class).getBody();
+        if(isErrorCode(openBankBalanceResponseDto.getBank_rsp_code())){
+            log.error("error code : {}, error msg : {}", openBankBalanceResponseDto.getRsp_code(), openBankBalanceResponseDto.getRsp_message());
+            throw new RuntimeException(openBankBalanceResponseDto.getRsp_message());
+        }
+        return openBankBalanceResponseDto;
     }
 
     /**
@@ -82,7 +116,9 @@ public class OpenBankApiClient {
 
         ResponseEntity<AccountTransferRequestDto> param = new ResponseEntity<>(accountTransferRequestDto,generateHeader("Authorization",access_token),HttpStatus.OK);
 
-        return restTemplate.exchange(url, HttpMethod.POST, param, AccountTransferResponseDto.class).getBody();
+        AccountTransferResponseDto transferResponseDto = restTemplate.exchange(url, HttpMethod.POST, param, AccountTransferResponseDto.class).getBody();
+
+        return transferResponseDto;
     }
 
     /**
@@ -105,6 +141,15 @@ public class OpenBankApiClient {
         httpHeaders.add(name, val);
         return httpHeaders;
     }
+
+    private boolean isErrorCode(String code){
+        if (code.startsWith("O")){
+            return true;
+        }
+        return false;
+    }
+
+
 
 
 }
