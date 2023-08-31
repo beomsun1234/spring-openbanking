@@ -202,4 +202,48 @@ class OpenBankApiClientTest {
         Assertions.assertThrows(RuntimeException.class, ()-> openBankApiClient.requestBalance(openBankBalanceRequestDto));
     }
 
+    @Test
+    @DisplayName("성공")
+    void 유저ci값_가져오기() throws JsonProcessingException {
+        //given
+        OpenBankUserInfoRequestDto openBankUserInfoRequestDto = OpenBankUserInfoRequestDto.builder().openBankId("1234").accessToken("test").build();
+
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/v2.0/user/me")
+                .queryParam("user_seq_no", openBankUserInfoRequestDto.getOpenBankId())
+                .build().toUriString();
+
+        OpenBankUserInfoResponseDto expect = OpenBankUserInfoResponseDto.builder().user_ci("test").rsp_code("A").build();
+
+        String resBody = mapper.writeValueAsString(expect);
+
+        this.mockServer
+                .expect(requestTo(url))
+                .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
+        //when
+        OpenBankUserInfoResponseDto result = openBankApiClient.requestOpenBankUserInfo(openBankUserInfoRequestDto);
+        //then
+        Assertions.assertEquals(expect.getUser_ci(), result.getUser_ci());
+    }
+    @Test
+    @DisplayName("실패 - rsp_code = 알파벳 O로 시작하면 에러이다.")
+    void 유저ci값_가져오기_실패() throws JsonProcessingException {
+        //given
+        OpenBankUserInfoRequestDto openBankUserInfoRequestDto = OpenBankUserInfoRequestDto.builder().openBankId("1234").accessToken("test").build();
+
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/v2.0/user/me")
+                .queryParam("user_seq_no", openBankUserInfoRequestDto.getOpenBankId())
+                .build().toUriString();
+
+        OpenBankUserInfoResponseDto expect = OpenBankUserInfoResponseDto.builder().user_ci("test").rsp_code("O").build();
+
+        String resBody = mapper.writeValueAsString(expect);
+
+        this.mockServer
+                .expect(requestTo(url))
+                .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
+        //when, then
+        Assertions.assertThrows(RuntimeException.class, ()->openBankApiClient.requestOpenBankUserInfo(openBankUserInfoRequestDto) );
+    }
+
+
 }

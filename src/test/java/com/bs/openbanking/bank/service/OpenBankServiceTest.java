@@ -4,6 +4,7 @@ import com.bs.openbanking.bank.api.OpenBankApiClient;
 import com.bs.openbanking.bank.dto.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -132,6 +133,53 @@ class OpenBankServiceTest {
         Assertions.assertEquals("20000", result.get(0).getBalance_amt());
         Assertions.assertEquals("신한", result.get(0).getBank_name());
         Assertions.assertEquals("20000", result.get(1).getBalance_amt());
+        Assertions.assertEquals("농협", result.get(1).getBank_name());
+    }
+    @Test
+    @DisplayName("금액 불러오기 실패")
+    void getAccountWithBalance_금액불러오기_실패시() throws ExecutionException, InterruptedException {
+        //given
+        AccountRequestDto accountRequestDto = AccountRequestDto.builder().accessToken("test").openBankId("1").build();
+
+        OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
+        expect.setUser_name("park");
+
+        OpenBankAccountDto resAccount= new OpenBankAccountDto();
+        resAccount.setAccount_num("1234");
+        resAccount.setAccount_num_masked("1234");
+        resAccount.setFintech_use_num("111111");
+        resAccount.setAccount_seq("1");
+        resAccount.setBank_name("신한");
+
+        OpenBankAccountDto resAccount2 = new OpenBankAccountDto();
+        resAccount2.setAccount_num("2345");
+        resAccount2.setAccount_num_masked("2345");
+        resAccount2.setFintech_use_num("22222");
+        resAccount2.setAccount_seq("1");
+        resAccount2.setBank_name("농협");
+
+        expect.setRes_list(List.of(resAccount, resAccount2));
+
+        Mockito.when(openBankApiClient.requestAccountList(Mockito.any(OpenBankAccountSearchRequestDto.class))).thenReturn(expect);
+
+        expect.getRes_list().forEach(openBankAccountDto1 -> {
+            CompletableFuture.runAsync(()->{
+                OpenBankBalanceResponseDto expect2 = new OpenBankBalanceResponseDto();
+                expect2.setBank_name(openBankAccountDto1.getBank_name());
+                expect2.setFintech_use_num(openBankAccountDto1.getFintech_use_num());
+                expect2.setBank_name(openBankAccountDto1.getBank_name());
+                Mockito.when(openBankApiClient.requestBalance(Mockito.any(OpenBankBalanceRequestDto.class)))
+                        .thenThrow(RuntimeException.class);
+            }).join();
+        });
+
+        //when
+        List<OpenBankAccountResponseDto> result = openBankService.getAccountWithBalance(accountRequestDto);
+        //then
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals("", result.get(0).getBalance_amt());
+        Assertions.assertEquals("신한", result.get(0).getBank_name());
+        Assertions.assertEquals("", result.get(1).getBalance_amt());
         Assertions.assertEquals("농협", result.get(1).getBank_name());
     }
 }
