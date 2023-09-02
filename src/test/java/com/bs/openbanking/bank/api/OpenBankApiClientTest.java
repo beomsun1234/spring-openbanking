@@ -88,7 +88,6 @@ class OpenBankApiClientTest {
                 .expect(requestTo(baseUrl + "/oauth/2.0/token"))
                 .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
         //when, then
-
         Assertions.assertThrows(
                 RuntimeException.class, ()-> openBankApiClient.requestToken(openBankRequestToken)
         );
@@ -113,6 +112,7 @@ class OpenBankApiClientTest {
 
         OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
         expect.setUser_name("park");
+        expect.setRsp_code("A0001");
 
         String resBody = mapper.writeValueAsString(expect);
 
@@ -156,7 +156,11 @@ class OpenBankApiClientTest {
     @Test
     void requestBalanceTest() throws JsonProcessingException {
         //given
-        OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder().bank_tran_id("test").fintech_use_num("123").tran_dtime(OpenBankUtil.getTransTime()).build();
+        OpenBankBalanceRequestDto openBankBalanceRequestDto = OpenBankBalanceRequestDto.builder()
+                .bank_tran_id("test")
+                .fintech_use_num("123")
+                .accessToken("test")
+                .tran_dtime(OpenBankUtil.getTransTime()).build();
 
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl+"/v2.0/account/balance/fin_num")
                 .queryParam("bank_tran_id", openBankBalanceRequestDto.getBank_tran_id())
@@ -166,6 +170,7 @@ class OpenBankApiClientTest {
 
         OpenBankBalanceResponseDto expect = new OpenBankBalanceResponseDto();
         expect.setBalance_amt("10000");
+        expect.setRsp_code("A0001");
 
         String resBody = mapper.writeValueAsString(expect);
 

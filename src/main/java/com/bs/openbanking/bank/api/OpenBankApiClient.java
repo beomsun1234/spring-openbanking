@@ -95,7 +95,7 @@ public class OpenBankApiClient {
                 .build();
 
         OpenBankBalanceResponseDto openBankBalanceResponseDto = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, OpenBankBalanceResponseDto.class).getBody();
-        if(isErrorCode(openBankBalanceResponseDto.getBank_rsp_code())){
+        if(isErrorCode(openBankBalanceResponseDto.getRsp_code())){
             log.error("error code : {}, error msg : {}", openBankBalanceResponseDto.getRsp_code(), openBankBalanceResponseDto.getRsp_message());
             throw new RuntimeException(openBankBalanceResponseDto.getRsp_message());
         }
