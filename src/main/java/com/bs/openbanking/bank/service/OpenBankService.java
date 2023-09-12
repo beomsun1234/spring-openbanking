@@ -1,7 +1,7 @@
 package com.bs.openbanking.bank.service;
 
-import com.bs.openbanking.bank.api.OpenBankApiClient;
-import com.bs.openbanking.bank.api.OpenBankUtil;
+import com.bs.openbanking.bank.client.OpenBankApiClient;
+import com.bs.openbanking.bank.client.OpenBankUtil;
 import com.bs.openbanking.bank.dto.*;
 
 import lombok.extern.slf4j.Slf4j;

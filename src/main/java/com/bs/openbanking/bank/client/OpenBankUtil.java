@@ -1,4 +1,4 @@
-package com.bs.openbanking.bank.api;
+package com.bs.openbanking.bank.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package com.bs.openbanking.bank.service;
 
-import com.bs.openbanking.bank.api.OpenBankApiClient;
+import com.bs.openbanking.bank.client.OpenBankApiClient;
 import com.bs.openbanking.bank.dto.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package com.bs.openbanking.bank.api;
+package com.bs.openbanking.bank.client;
 
 import com.bs.openbanking.bank.dto.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
