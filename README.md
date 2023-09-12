@@ -44,7 +44,7 @@ postgres db를 사용할 경우 프로젝트 루트에 있는 docker-compose 파
 frontend에서 사용자 인증을 완료하고 redirect url로 전달받은 code를 backend에 요청하여 오픈뱅킹 사용자 토큰을 저장합니다. access token의 경우 사용기간이 90일이며, refresh token의 경우 95일 입니다. 중요한 정보이므로 서버에서 관리하고 요청시에만 db에서 조회하도록 구현했습니다.
 
 
+### -잔액조회-
 
 <img width="1489" alt="스크린샷 2023-09-13 오전 12 36 51" src="https://github.com/beomsun1234/spring-openbanking/assets/68090443/eb905ddd-1f2c-41c3-b6b0-7a84fa85b04a">
--잔액조회-
 
