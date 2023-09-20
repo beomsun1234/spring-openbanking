@@ -45,7 +45,9 @@ public class TokenService {
 
         tokenRepository.save(openBankToken);
 
-        member.updateOpenBankId(openBankReponseToken.getUser_seq_no());
+        if (!member.hasOpenBankId()) {
+            member.updateOpenBankId(openBankReponseToken.getUser_seq_no());
+        }
     }
 
     public OpenBankTokenDto findOpenBankTokenByMemberId(Long memberId){

@@ -40,7 +40,7 @@ public class Member extends BaseTimeEntity{
         this.openBankCi = openBankCi;
     }
 
-    public boolean isVaildPassword(String password){
+    public boolean isValidPassword(String password){
         if (!this.password.equals(password)){
             return false;
         }
@@ -49,6 +49,13 @@ public class Member extends BaseTimeEntity{
 
     public boolean hasOpenBankCi(){
         if (this.openBankCi == null || this.openBankCi.isBlank()){
+            return false;
+        }
+        return true;
+    }
+
+    public boolean hasOpenBankId(){
+        if (this.openBankId == null || this.openBankId.isBlank()){
             return false;
         }
         return true;

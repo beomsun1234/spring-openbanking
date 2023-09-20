@@ -108,7 +108,7 @@ class MemberServiceTest {
         Mockito.when(tokenRepository.findOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(Optional.of(openBankToken));
         Mockito.when(openBankService.findOpenBankUserInfo(Mockito.any(OpenBankUserInfoRequestDto.class))).thenReturn(userInfoResponseDto);
         //when//then
-        memberService.addOpenBankInfo(1L,"1234");
+        memberService.addOpenBankInfo(1L);
     }
     @Test
     @DisplayName("ci정보가지고있는지확인")
@@ -131,7 +131,7 @@ class MemberServiceTest {
         Mockito.when(tokenRepository.findOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(Optional.of(openBankToken));
         Mockito.when(openBankService.findOpenBankUserInfo(Mockito.any(OpenBankUserInfoRequestDto.class))).thenReturn(userInfoResponseDto);
         //when//then
-        memberService.addOpenBankInfo(1L,"1234");
+        memberService.addOpenBankInfo(1L);
     }
     @Test
     @DisplayName("오픈뱅킹에서 유저 ci 정보 가져와서 저장하기 실패 - 이미 가지고있다.")
@@ -146,7 +146,7 @@ class MemberServiceTest {
         Mockito.when(tokenRepository.findOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(Optional.of(openBankToken));
         Mockito.when(openBankService.findOpenBankUserInfo(Mockito.any(OpenBankUserInfoRequestDto.class))).thenReturn(userInfoResponseDto);
         //when//then
-        assertThrows(RuntimeException.class, ()->memberService.addOpenBankInfo(1L,"1234"));
+        assertThrows(RuntimeException.class, ()->memberService.addOpenBankInfo(1L));
     }
     @Test
     @DisplayName("오픈뱅킹에서 유저 ci 정보 가져와서 저장하기 실패 - 존재하지 않는 member이다.")
@@ -159,7 +159,18 @@ class MemberServiceTest {
         Mockito.when(tokenRepository.findOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(Optional.of(openBankToken));
         Mockito.when(openBankService.findOpenBankUserInfo(Mockito.any(OpenBankUserInfoRequestDto.class))).thenReturn(userInfoResponseDto);
         //when//then
-        assertThrows(NoSuchElementException.class, ()->memberService.addOpenBankInfo(1L,"1234"));
+        assertThrows(NoSuchElementException.class, ()->memberService.addOpenBankInfo(1L));
+    }
+
+    @Test
+    @DisplayName("오픈뱅킹에서 유저 ci 정보 가져와서 저장하기 실패 - openBankId가 없다")
+    void 유저_ci_가져오기_실패_오픈뱅킹_id_존재하지않는다() {
+        //given
+        Long memberId = 1L;
+        Member expect = Member.builder().openBankCi("test").id(memberId).email("test").password("test").build();
+        Mockito.when(memberRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(expect));
+        //when//then
+        assertThrows(RuntimeException.class, ()->memberService.addOpenBankInfo(1L));
     }
 
     @Test
@@ -175,6 +186,6 @@ class MemberServiceTest {
         Mockito.when(tokenRepository.findOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(Optional.ofNullable(openBankToken));
         Mockito.when(openBankService.findOpenBankUserInfo(Mockito.any(OpenBankUserInfoRequestDto.class))).thenReturn(userInfoResponseDto);
         //when//then
-        assertThrows(NoSuchElementException.class, ()->memberService.addOpenBankInfo(1L,"1234"));
+        assertThrows(NoSuchElementException.class, ()->memberService.addOpenBankInfo(1L));
     }
 }

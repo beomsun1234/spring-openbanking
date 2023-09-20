@@ -25,7 +25,7 @@ public class MemberService {
         return member.getId();
     }
     @Transactional
-    public void addOpenBankInfo(Long memberId, String openBankId){
+    public void addOpenBankInfo(Long memberId){
 
         Member member = memberRepository.findById(memberId).orElseThrow();
 
@@ -33,12 +33,16 @@ public class MemberService {
             throw new RuntimeException("ci 정보를 이미 가지고있습니다.");
         }
 
+        if (!member.hasOpenBankId()){
+            throw new RuntimeException("오픈뱅킹 id를 가지고있지 않습니다.");
+        }
+
         OpenBankToken openBankToken = tokenRepository.findOpenBankTokenByMemberId(memberId).orElseThrow();
 
         OpenBankUserInfoResponseDto openBankUserInfo = openBankService.findOpenBankUserInfo(OpenBankUserInfoRequestDto
                 .builder()
                 .accessToken(openBankToken.getAccessToken())
-                .openBankId(openBankId)
+                .openBankId(member.getOpenBankId())
                 .build());
 
         member.updateOpenBankCi(openBankUserInfo.getUser_ci());
@@ -53,7 +57,7 @@ public class MemberService {
     public MemberDto signIn(SignInDto signInDto){
         Member member = memberRepository.findByEmail(signInDto.getEmail()).orElseThrow();
 
-        if (!member.isVaildPassword(signInDto.getPassword())){
+        if (!member.isValidPassword(signInDto.getPassword())){
             throw new IllegalArgumentException("로그인실패");
         }
 
