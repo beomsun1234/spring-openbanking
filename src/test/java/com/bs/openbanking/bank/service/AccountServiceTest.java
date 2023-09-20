@@ -1,6 +1,7 @@
 package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.domain.Account;
+import com.bs.openbanking.bank.domain.AccountType;
 import com.bs.openbanking.bank.domain.OpenBankToken;
 import com.bs.openbanking.bank.dto.*;
 import com.bs.openbanking.bank.repository.AccountRepository;
@@ -322,4 +323,26 @@ class AccountServiceTest {
         Assertions.assertEquals("",accounts.get(1).getBalanceAmt());
     }
 
+    @Test
+    @DisplayName("주계좌가 없을 경우 바로 업데이트")
+    void updateAccountType(){
+        Account account = Account.builder().memberId(1L).id(1L).accountType(AccountType.SUB).build();
+        Mockito.when(accountRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(account));
+        Mockito.when(accountRepository.findMainAccountByMemberId(Mockito.anyLong())).thenReturn(Optional.ofNullable(null));
+        //when, then
+        accountService.updateAccountType(1L,1L);
+    }
+    @Test
+    @DisplayName("주계좌가 있을경우 기존 주계좌는 sub로 변경 후 업데이트")
+    void updateAccountType_2(){
+        Account account = Account.builder().memberId(1L).id(1L).accountType(AccountType.SUB).build();
+        Account pre_account = Account.builder().memberId(1L).id(2L).accountType(AccountType.MAIN).build();
+        Mockito.when(accountRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(account));
+        Mockito.when(accountRepository.findMainAccountByMemberId(Mockito.anyLong())).thenReturn(Optional.ofNullable(pre_account));
+        //when
+        accountService.updateAccountType(1L,1L);
+        //then
+        Assertions.assertEquals(true, account.isMainAccount());
+        Assertions.assertEquals(false, pre_account.isMainAccount());
+    }
 }
