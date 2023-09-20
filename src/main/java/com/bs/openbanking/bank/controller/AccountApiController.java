@@ -28,4 +28,10 @@ public class AccountApiController {
         List<AccountDto> accounts = accountService.findAccountsByMemberId(id);
         return ResponseEntity.ok().body(accounts);
     }
+
+    @PutMapping("members/{id}/accounts/{accountId}")
+    public ResponseEntity updateAccountType(@PathVariable Long id, @PathVariable("accountId") Long accountId) {
+        accountService.updateAccountType(id, accountId);
+        return ResponseEntity.status(200).build();
+    }
 }

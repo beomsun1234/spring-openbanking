@@ -1,6 +1,7 @@
 package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.domain.Account;
+import com.bs.openbanking.bank.domain.AccountType;
 import com.bs.openbanking.bank.domain.Member;
 import com.bs.openbanking.bank.domain.OpenBankToken;
 import com.bs.openbanking.bank.dto.*;
@@ -158,5 +159,25 @@ public class AccountService {
         return amt;
     }
 
+    /**
+     * 주계좌 설정
+     */
+    @Transactional
+    public void updateAccountType(Long memberId, Long accountId){
+        Account account = accountRepository.findById(accountId).orElseThrow();
 
+        if (account.isMainAccount()){
+            throw new RuntimeException("해당 계좌는 이미 주계좌로 설정되어있습니다.");
+        }
+
+        Account preMainAccount = accountRepository.findMainAccountByMemberId(memberId).orElse(null);
+
+        if (preMainAccount  == null) {
+            account.updateAccountType(AccountType.MAIN);
+            return;
+        }
+
+        preMainAccount.updateAccountType(AccountType.SUB);
+        account.updateAccountType(AccountType.MAIN);
+    }
 }
