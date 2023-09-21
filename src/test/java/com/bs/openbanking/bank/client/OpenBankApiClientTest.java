@@ -1,7 +1,7 @@
 package com.bs.openbanking.bank.client;
 
-import com.bs.openbanking.bank.configuration.Config;
-import com.bs.openbanking.bank.dto.*;
+import com.bs.openbanking.bank.configuration.RestTemplateConfig;
+import com.bs.openbanking.bank.dto.openbank.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -23,7 +23,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles(profiles = "openbank")
-@ContextConfiguration(classes = {Config.class, OpenBankApiClient.class})
+@ContextConfiguration(classes = {RestTemplateConfig.class, OpenBankApiClient.class})
 class OpenBankApiClientTest {
 
     @Autowired
@@ -34,13 +34,15 @@ class OpenBankApiClientTest {
     private String baseUrl = "https://testapi.openbanking.or.kr";
 
     private ObjectMapper mapper = new ObjectMapper();
+
+    private static final String successCode = "A0000";
     @BeforeEach
     void setUp(){
         this.mockServer = MockRestServiceServer.createServer(restTemplate);
     }
 
     @Test
-    @DisplayName("성공")
+    @DisplayName("성공- 토큰 요청의 경우 성공시 rsp_code = null 값")
     void requestTokenTest() throws JsonProcessingException {
         //given
         OpenBankRequestToken openBankRequestToken = OpenBankRequestToken
@@ -52,8 +54,9 @@ class OpenBankApiClientTest {
                 .client_secret("test")
                 .build();
 
-        OpenBankReponseToken expect = new OpenBankReponseToken();
+        OpenBankResponseToken expect = new OpenBankResponseToken();
         expect.setAccess_token("test");
+        expect.setRsp_code(null);
 
         String resBody = mapper.writeValueAsString(expect);
 
@@ -61,7 +64,7 @@ class OpenBankApiClientTest {
                 .expect(requestTo(baseUrl + "/oauth/2.0/token"))
                 .andRespond(withSuccess(resBody, MediaType.APPLICATION_JSON));
         //when
-        OpenBankReponseToken result = openBankApiClient.requestToken(openBankRequestToken);
+        OpenBankResponseToken result = openBankApiClient.requestToken(openBankRequestToken);
         //then
         Assertions.assertEquals(expect.getAccess_token(),result.getAccess_token() );
     }
@@ -78,11 +81,10 @@ class OpenBankApiClientTest {
                 .client_secret("test")
                 .build();
 
-        OpenBankFailureResponseDto openBankFailureResponseDto = new OpenBankFailureResponseDto();
-        openBankFailureResponseDto.setRsp_code("00001");
-        openBankFailureResponseDto.setRsp_message("error test");
+        OpenBankResponseToken expect = new OpenBankResponseToken();
+        expect.setRsp_code("O0001");
 
-        String resBody = mapper.writeValueAsString(openBankFailureResponseDto);
+        String resBody = mapper.writeValueAsString(expect);
 
         this.mockServer
                 .expect(requestTo(baseUrl + "/oauth/2.0/token"))
@@ -112,7 +114,7 @@ class OpenBankApiClientTest {
 
         OpenBankAccountSearchResponseDto expect = new OpenBankAccountSearchResponseDto();
         expect.setUser_name("park");
-        expect.setRsp_code("A0001");
+        expect.setRsp_code(successCode);
 
         String resBody = mapper.writeValueAsString(expect);
 
@@ -170,7 +172,7 @@ class OpenBankApiClientTest {
 
         OpenBankBalanceResponseDto expect = new OpenBankBalanceResponseDto();
         expect.setBalance_amt("10000");
-        expect.setRsp_code("A0001");
+        expect.setRsp_code(successCode);
 
         String resBody = mapper.writeValueAsString(expect);
 
@@ -217,7 +219,7 @@ class OpenBankApiClientTest {
                 .queryParam("user_seq_no", openBankUserInfoRequestDto.getOpenBankId())
                 .build().toUriString();
 
-        OpenBankUserInfoResponseDto expect = OpenBankUserInfoResponseDto.builder().user_ci("test").rsp_code("A").build();
+        OpenBankUserInfoResponseDto expect = OpenBankUserInfoResponseDto.builder().user_ci("test").rsp_code(successCode).build();
 
         String resBody = mapper.writeValueAsString(expect);
 

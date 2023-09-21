@@ -1,5 +1,6 @@
-package com.bs.openbanking.bank.dto;
+package com.bs.openbanking.bank.dto.openbank;
 
+import com.bs.openbanking.bank.dto.openbank.OpenBankAccountDto;
 import lombok.Data;
 
 import java.util.List;

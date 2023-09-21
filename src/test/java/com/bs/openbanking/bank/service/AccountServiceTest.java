@@ -4,6 +4,9 @@ import com.bs.openbanking.bank.domain.Account;
 import com.bs.openbanking.bank.domain.AccountType;
 import com.bs.openbanking.bank.domain.OpenBankToken;
 import com.bs.openbanking.bank.dto.*;
+import com.bs.openbanking.bank.dto.openbank.OpenBankAccountDto;
+import com.bs.openbanking.bank.dto.openbank.OpenBankAccountSearchResponseDto;
+import com.bs.openbanking.bank.dto.openbank.OpenBankBalanceResponseDto;
 import com.bs.openbanking.bank.repository.AccountRepository;
 import com.bs.openbanking.bank.repository.MemberRepository;
 import com.bs.openbanking.bank.repository.TokenRepository;
@@ -18,8 +21,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.*;
 
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 class AccountServiceTest {

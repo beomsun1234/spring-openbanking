@@ -4,6 +4,7 @@ import com.bs.openbanking.bank.client.OpenBankApiClient;
 import com.bs.openbanking.bank.client.OpenBankUtil;
 import com.bs.openbanking.bank.dto.*;
 
+import com.bs.openbanking.bank.dto.openbank.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class OpenBankService {
      * @return
      */
 
-    public OpenBankReponseToken requestToken(TokenRequestDto tokenRequestDto){
+    public OpenBankResponseToken requestToken(TokenRequestDto tokenRequestDto){
         OpenBankRequestToken openBankRequestToken = OpenBankRequestToken.builder()
                 .code(tokenRequestDto.getCode())
                 .client_id(clientId)
@@ -51,8 +52,8 @@ public class OpenBankService {
                 .redirect_uri(redirect_uri)
                 .grant_type("authorization_code")
                 .build();
-        OpenBankReponseToken openBankReponseToken = openBankApiClient.requestToken(openBankRequestToken);
-        return openBankReponseToken;
+        OpenBankResponseToken openBankResponseToken = openBankApiClient.requestToken(openBankRequestToken);
+        return openBankResponseToken;
     }
 
 
@@ -88,11 +89,19 @@ public class OpenBankService {
         OpenBankBalanceResponseDto openBankBalanceResponseDto = openBankApiClient.requestBalance(openBankBalanceRequestDto);
         return openBankBalanceResponseDto;
     }
+
+    /**
+     * 출금이체
+     * @param access_token
+     * @param accountTransferRequestDto
+     * @return
+     */
     public AccountTransferResponseDto accountTransfer(String access_token, AccountTransferRequestDto accountTransferRequestDto){
         return openBankApiClient.requestTransfer(access_token,accountTransferRequestDto);
     }
 
     /**
+     * -------------사용 xxxx -> account service 로 옮김-----------
      * 계좌조회 및 금액조회
      * @param
      * @return

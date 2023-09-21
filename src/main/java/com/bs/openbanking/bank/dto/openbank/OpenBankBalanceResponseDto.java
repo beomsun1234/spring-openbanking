@@ -1,4 +1,4 @@
-package com.bs.openbanking.bank.dto;
+package com.bs.openbanking.bank.dto.openbank;
 
 import lombok.Data;
 

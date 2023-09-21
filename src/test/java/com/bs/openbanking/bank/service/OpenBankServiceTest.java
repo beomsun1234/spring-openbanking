@@ -2,6 +2,7 @@ package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.client.OpenBankApiClient;
 import com.bs.openbanking.bank.dto.*;
+import com.bs.openbanking.bank.dto.openbank.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,12 +48,12 @@ class OpenBankServiceTest {
     void requestTokenTest() {
         //given
         TokenRequestDto tokenRequestDto = TokenRequestDto.builder().code("test").memberId(1L).build();
-        OpenBankReponseToken expect = new OpenBankReponseToken();
+        OpenBankResponseToken expect = new OpenBankResponseToken();
         expect.setAccess_token("test");
 
         Mockito.when(openBankApiClient.requestToken(Mockito.any(OpenBankRequestToken.class))).thenReturn(expect);
         //when
-        OpenBankReponseToken result = openBankService.requestToken(tokenRequestDto);
+        OpenBankResponseToken result = openBankService.requestToken(tokenRequestDto);
         //then
         Assertions.assertEquals(expect.getAccess_token(), result.getAccess_token());
     }

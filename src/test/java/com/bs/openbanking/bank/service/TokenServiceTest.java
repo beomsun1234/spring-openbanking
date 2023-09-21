@@ -2,7 +2,7 @@ package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.domain.Member;
 import com.bs.openbanking.bank.domain.OpenBankToken;
-import com.bs.openbanking.bank.dto.OpenBankReponseToken;
+import com.bs.openbanking.bank.dto.openbank.OpenBankResponseToken;
 import com.bs.openbanking.bank.dto.OpenBankTokenDto;
 import com.bs.openbanking.bank.dto.TokenRequestDto;
 import com.bs.openbanking.bank.repository.MemberRepository;
@@ -19,8 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith({SpringExtension.class})
 @ActiveProfiles("openbank")
@@ -41,17 +39,17 @@ class TokenServiceTest {
         //given
         Member member = Member.builder().id(1L).email("test").build();
         OpenBankToken openBankToken = OpenBankToken.builder().accessToken("test").openBankId("test").refreshToken("test").memberId(1L).build();
-        OpenBankReponseToken openBankReponseToken = new OpenBankReponseToken();
-        openBankReponseToken.setAccess_token("test");
-        openBankReponseToken.setRefresh_token("test");
-        openBankReponseToken.setUser_seq_no("1234");
-        openBankReponseToken.setExpires_in(100);
+        OpenBankResponseToken openBankResponseToken = new OpenBankResponseToken();
+        openBankResponseToken.setAccess_token("test");
+        openBankResponseToken.setRefresh_token("test");
+        openBankResponseToken.setUser_seq_no("1234");
+        openBankResponseToken.setExpires_in(100);
 
         TokenRequestDto tokenRequestDto = TokenRequestDto.builder().memberId(1L).code("test").build();
 
         Mockito.when(memberRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(member));
         Mockito.when(tokenRepository.existsOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(false);
-        Mockito.when(openBankService.requestToken(Mockito.any(TokenRequestDto.class))).thenReturn(openBankReponseToken);
+        Mockito.when(openBankService.requestToken(Mockito.any(TokenRequestDto.class))).thenReturn(openBankResponseToken);
         Mockito.when(tokenRepository.save(Mockito.any(OpenBankToken.class))).thenReturn(openBankToken);
         //when, then
         tokenService.saveOpenBankUserToken(tokenRequestDto);
@@ -64,17 +62,17 @@ class TokenServiceTest {
         Member member = Member.builder().id(1L).email("test").build();
         OpenBankToken openBankToken = OpenBankToken.builder().memberId(1L).accessToken("test").build();
 
-        OpenBankReponseToken openBankReponseToken = new OpenBankReponseToken();
-        openBankReponseToken.setAccess_token("test");
-        openBankReponseToken.setRefresh_token("test");
-        openBankReponseToken.setUser_seq_no("1234");
-        openBankReponseToken.setExpires_in(100);
+        OpenBankResponseToken openBankResponseToken = new OpenBankResponseToken();
+        openBankResponseToken.setAccess_token("test");
+        openBankResponseToken.setRefresh_token("test");
+        openBankResponseToken.setUser_seq_no("1234");
+        openBankResponseToken.setExpires_in(100);
 
         TokenRequestDto tokenRequestDto = TokenRequestDto.builder().memberId(1L).code("test").build();
 
         Mockito.when(memberRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(member));
         Mockito.when(tokenRepository.existsOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(openBankService.requestToken(Mockito.any(TokenRequestDto.class))).thenReturn(openBankReponseToken);
+        Mockito.when(openBankService.requestToken(Mockito.any(TokenRequestDto.class))).thenReturn(openBankResponseToken);
         Mockito.when(tokenRepository.save(Mockito.any(OpenBankToken.class))).thenReturn(openBankToken);
         //when, then
         Assertions.assertThrows(RuntimeException.class, () -> tokenService.saveOpenBankUserToken(tokenRequestDto));
@@ -85,17 +83,17 @@ class TokenServiceTest {
         //given
         OpenBankToken openBankToken = OpenBankToken.builder().memberId(1L).accessToken("test").build();
 
-        OpenBankReponseToken openBankReponseToken = new OpenBankReponseToken();
-        openBankReponseToken.setAccess_token("test");
-        openBankReponseToken.setRefresh_token("test");
-        openBankReponseToken.setUser_seq_no("1234");
-        openBankReponseToken.setExpires_in(100);
+        OpenBankResponseToken openBankResponseToken = new OpenBankResponseToken();
+        openBankResponseToken.setAccess_token("test");
+        openBankResponseToken.setRefresh_token("test");
+        openBankResponseToken.setUser_seq_no("1234");
+        openBankResponseToken.setExpires_in(100);
 
         TokenRequestDto tokenRequestDto = TokenRequestDto.builder().memberId(1L).code("test").build();
 
         Mockito.when(memberRepository.findById(Mockito.anyLong())).thenReturn(Optional.ofNullable(null));
         Mockito.when(tokenRepository.existsOpenBankTokenByMemberId(Mockito.anyLong())).thenReturn(false);
-        Mockito.when(openBankService.requestToken(Mockito.any(TokenRequestDto.class))).thenReturn(openBankReponseToken);
+        Mockito.when(openBankService.requestToken(Mockito.any(TokenRequestDto.class))).thenReturn(openBankResponseToken);
         Mockito.when(tokenRepository.save(Mockito.any(OpenBankToken.class))).thenReturn(openBankToken);
         //when, then
         Assertions.assertThrows(NoSuchElementException.class, () -> tokenService.saveOpenBankUserToken(tokenRequestDto));

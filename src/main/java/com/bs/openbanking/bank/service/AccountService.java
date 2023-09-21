@@ -2,9 +2,10 @@ package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.domain.Account;
 import com.bs.openbanking.bank.domain.AccountType;
-import com.bs.openbanking.bank.domain.Member;
 import com.bs.openbanking.bank.domain.OpenBankToken;
 import com.bs.openbanking.bank.dto.*;
+import com.bs.openbanking.bank.dto.openbank.OpenBankAccountSearchResponseDto;
+import com.bs.openbanking.bank.dto.openbank.OpenBankBalanceResponseDto;
 import com.bs.openbanking.bank.repository.AccountRepository;
 import com.bs.openbanking.bank.repository.MemberRepository;
 import com.bs.openbanking.bank.repository.TokenRepository;

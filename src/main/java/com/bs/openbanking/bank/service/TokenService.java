@@ -2,7 +2,7 @@ package com.bs.openbanking.bank.service;
 
 import com.bs.openbanking.bank.domain.Member;
 import com.bs.openbanking.bank.domain.OpenBankToken;
-import com.bs.openbanking.bank.dto.OpenBankReponseToken;
+import com.bs.openbanking.bank.dto.openbank.OpenBankResponseToken;
 import com.bs.openbanking.bank.dto.OpenBankTokenDto;
 import com.bs.openbanking.bank.dto.TokenRequestDto;
 import com.bs.openbanking.bank.repository.MemberRepository;
@@ -11,9 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.NotActiveException;
-import java.util.NoSuchElementException;
 
 @Service
 @Slf4j
@@ -33,20 +30,20 @@ public class TokenService {
             throw new RuntimeException("이미 토큰이 존재함");
         }
 
-        OpenBankReponseToken openBankReponseToken = openBankService.requestToken(tokenRequestDto);
+        OpenBankResponseToken openBankResponseToken = openBankService.requestToken(tokenRequestDto);
 
         OpenBankToken openBankToken = OpenBankToken.builder()
-                .accessToken(openBankReponseToken.getAccess_token())
-                .refreshToken(openBankReponseToken.getRefresh_token())
-                .expiresIn((long) openBankReponseToken.getExpires_in())
-                .openBankId(openBankReponseToken.getUser_seq_no())
+                .accessToken(openBankResponseToken.getAccess_token())
+                .refreshToken(openBankResponseToken.getRefresh_token())
+                .expiresIn((long) openBankResponseToken.getExpires_in())
+                .openBankId(openBankResponseToken.getUser_seq_no())
                 .memberId(tokenRequestDto.getMemberId())
                 .build();
 
         tokenRepository.save(openBankToken);
 
         if (!member.hasOpenBankId()) {
-            member.updateOpenBankId(openBankReponseToken.getUser_seq_no());
+            member.updateOpenBankId(openBankResponseToken.getUser_seq_no());
         }
     }
 

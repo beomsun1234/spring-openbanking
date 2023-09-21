@@ -1,7 +1,6 @@
 package com.bs.openbanking.bank.client;
 
-import com.bs.openbanking.bank.dto.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.bs.openbanking.bank.dto.openbank.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -11,8 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Optional;
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -20,43 +17,32 @@ import java.util.Optional;
 public class OpenBankApiClient {
     private final RestTemplate restTemplate;
     private static final String base_url = "https://testapi.openbanking.or.kr";
+    private static final String successCode = "A0000";
     /**
      * 토큰발급요청
      * post 방식으로 key=vale 데이터 요청 (금결원)
      * 토큰요청 http 헤더타입은 application/x-www-form-urlencoded
      */
-    public OpenBankReponseToken requestToken(OpenBankRequestToken openBankRequestToken){
+    public OpenBankResponseToken requestToken(OpenBankRequestToken openBankRequestToken){
         HttpHeaders httpHeaders = generateHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
         /**
          * 헤더의 컨텐트 타입이 application/x-www-form-urlencoded;charset=UTF-8이므로 객체를 집어넣을수 없음.. 그러므로 MultiValueMap 사용 해야함
          */
         HttpEntity httpEntity = generateHttpEntityWithBody(httpHeaders, openBankRequestToken.toMultiValueMap());
 
-        String body = restTemplate.exchange(base_url + "/oauth/2.0/token", HttpMethod.POST, httpEntity, String.class).getBody();
+        OpenBankResponseToken openBankResponseToken = restTemplate.exchange(base_url + "/oauth/2.0/token", HttpMethod.POST, httpEntity, OpenBankResponseToken.class).getBody();
 
-        try {
-            OpenBankReponseToken openBankReponseToken = OpenBankUtil.objectMapper().readValue(body, OpenBankReponseToken.class);
-            return openBankReponseToken;
-        } catch (JsonProcessingException e) {
-            OpenBankFailureResponseDto openBankError = getOpenBankRequestError(body);
-            log.error("error code : {}, error msg : {}", openBankError.getRsp_code(), openBankError.getRsp_message());
-            throw new RuntimeException(openBankError.getRsp_message());
+        if(isErrorCode(openBankResponseToken.getRsp_code())){
+            log.error("error code : {}, error msg : {}", openBankResponseToken.getRsp_code(), openBankResponseToken.getRsp_message());
+            throw new RuntimeException(openBankResponseToken.getRsp_message());
         }
+        return openBankResponseToken;
+
     }
     private HttpEntity generateHttpEntityWithBody(HttpHeaders httpHeaders, MultiValueMap body) {
         return new HttpEntity<>(body, httpHeaders);
     }
-    /**
-     * openBankResponse data To Error data
-     **/
-    private OpenBankFailureResponseDto getOpenBankRequestError(String body){
-        try {
-            OpenBankFailureResponseDto openBankFailureResponseDto = Optional.ofNullable(OpenBankUtil.objectMapper().readValue(body, OpenBankFailureResponseDto.class)).orElseThrow();
-            return openBankFailureResponseDto;
-        } catch (JsonProcessingException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
+
     /**
      * 계좌조회
      * @param openBankAccountSearchRequestDto
@@ -160,10 +146,11 @@ public class OpenBankApiClient {
     }
 
     private boolean isErrorCode(String code){
-        if (code.startsWith("O")){
-            return true;
+        if (code==null) return false;
+        if (code.equals(successCode)){
+            return false;
         }
-        return false;
+        return true;
     }
 
 
